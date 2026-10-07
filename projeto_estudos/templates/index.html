@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+
+{% block conteudo %}
+
+
+<h2>Painel Inicial</h2>
+
+
+<p>Bem-vindo ao Sistema de Biblioteca Escolar.</p>
+
+
+<div class="painel">
+
+
+    <div class="card">
+        <h3>Alunos</h3>
+        <p>{{ total_alunos }}</p>
+    </div>
+
+
+    <div class="card">
+        <h3>Livros</h3>
+        <p>{{ total_livros }}</p>
+    </div>
+
+
+    <div class="card">
+        <h3>Disponíveis</h3>
+        <p>{{ total_disponiveis }}</p>
+    </div>
+
+
+    <div class="card">
+        <h3>Emprestados</h3>
+        <p>{{ total_emprestimos }}</p>
+    </div>
+
+
+</div>
+
+
+
+
+{% endblock %}
+
+if "id_usuario" not in session:
+return redirect("/login")

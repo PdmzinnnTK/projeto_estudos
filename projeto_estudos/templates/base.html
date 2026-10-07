@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>Biblioteca Escolar</title>
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+
+<body>
+
+
+    <header>
+        <div class="topo">
+            <h1>Sistema Estudos Online</h1>
+            <p>Projeto Integrador - 3º Ano</p>
+
+
+            {% if session.nome %}
+                <p>Usuário logado: {{ session.nome }} | Perfil: {{ session.perfil }}</p>
+            {% endif %}
+        </div>
+
+
+        <nav>
+            <a href="/">Início</a>
+
+
+            {% if session.perfil in ['admin', 'bibliotecario', 'aluno', 'professor'] %}
+                <a href="/materias">Matérias</a>
+            {% endif %}
+
+
+            <a href="/logout">Sair</a>
+        </nav>
+    </header>
+
+
+    <main>
+
+
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+            {% if mensagens %}
+                {% for categoria, mensagem in mensagens %}
+                    <div class="mensagem {{ categoria }}">
+                        {{ mensagem }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
+        {% block conteudo %}
+        {% endblock %}
+
+
+    </main>
+
+
+    <footer>
+        <p>@2026 - Curso Técnico em Desenvolvimento de Sistemas</p>
+    </footer>
+
+
+</body>
+</html>
