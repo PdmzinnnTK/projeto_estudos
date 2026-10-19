@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pro Estudos - Educação Gratuita e Acessível{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Cabeçalho -->
+    <header>
+        <nav class="navbar">
+            <a href="{{ url_for('index') }}" class="logo">Pro<span>Estudos</span></a>
+            <ul class="nav-links">
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#recursos">Recursos</a></li>
+                <li><a href="#materias">Matérias</a></li>
+                <li><a href="#professores">Para Professores</a></li>
+            </ul>
+
+            {% if usuario %}
+                <div class="user-badge">
+                    <span>Olá, <strong>{{ usuario.nome }}</strong> ({{ usuario.perfil.capitalize() }})</span>
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+                </div>
+            {% else %}
+                <button class="btn btn-primary" onclick="openAuthModal('login')">Acessar Plataforma</button>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Modal Único (Login e Cadastro) -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
+                <button class="tab-btn" id="tabCadastro" onclick="switchTab('cadastro')">Criar Conta</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <form id="loginForm" class="form-step active" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" required placeholder="Sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+            </form>
+
+            <!-- Formulário de Cadastro -->
+            <form id="cadastroForm" class="form-step" onsubmit="handleCadastroSubmit(event)">
+                <div class="form-group">
+                    <label for="cadNome">Nome Completo</label>
+                    <input type="text" id="cadNome" required placeholder="Seu nome">
+                </div>
+                <div class="form-group">
+                    <label for="cadEmail">E-mail</label>
+                    <input type="email" id="cadEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="cadSenha">Senha</label>
+                    <input type="password" id="cadSenha" minlength="6" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="form-group">
+                    <label for="cadPerfil">Quero entrar como:</label>
+                    <select id="cadPerfil">
+                        <option value="aluno">Aluno(a)</option>
+                        <option value="professor">Professor(a) Voluntário(a)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Cadastrar e Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Pro Estudos. Plataforma Educacional Aberta e Gratuita.</p>
+    </footer>
+
+    <script>
+        function openAuthModal(aba = 'login', perfil = 'aluno') {
+            document.getElementById('authModal').style.display = 'flex';
+            if (perfil === 'professor') {
+                document.getElementById('cadPerfil').value = 'professor';
+            }
+            switchTab(aba);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        function switchTab(aba) {
+            const isLogin = aba === 'login';
+            document.getElementById('tabLogin').classList.toggle('active', isLogin);
+            document.getElementById('tabCadastro').classList.toggle('active', !isLogin);
+            document.getElementById('loginForm').classList.toggle('active', isLogin);
+            document.getElementById('cadastroForm').classList.toggle('active', !isLogin);
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        async function handleCadastroSubmit(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cadNome').value;
+            const email = document.getElementById('cadEmail').value;
+            const senha = document.getElementById('cadSenha').value;
+            const perfil = document.getElementById('cadPerfil').value;
+
+            const res = await fetch('/cadastrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, senha, perfil })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert(data.message);
+            }
+        }
+
+        window.onclick = function(e) {
+            if (e.target === document.getElementById('authModal')) closeAuthModal();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Início - Pro Estudos{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>Aprender nunca foi tão simples e acessível.</h1>
+            <p>O Pro Estudos é uma plataforma 100% gratuita desenvolvida para apoiar estudantes de todas as idades, do ensino médio até a educação de adultos, com o apoio de professores voluntários.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary" onclick="openAuthModal('cadastro', 'aluno')">Quero Estudar</button>
+                <button class="btn btn-accent" onclick="openAuthModal('cadastro', 'professor')">Quero Ensinar</button>
+            </div>
+        </div>
+        <div class="hero-card">
+            <h3>Comece Agora Mesmo</h3>
+            <p>Acesse vídeos, resumos, exercícios práticos e tire dúvidas de forma direta.</p>
+            <div class="hero-highlights">
+                ✓ Sem mensalidades <br>
+                ✓ Conteúdo para todas as idades <br>
+                ✓ Materiais criados por educadores
+            </div>
+        </div>
+    </section>
+
+    <!-- Recursos -->
+    <section class="features" id="recursos">
+        <h2 class="section-title">O que você encontra no Pro Estudos</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <h3>Aulas em Vídeo</h3>
+                <p>Explicações diretas e dinâmicas preparadas por voluntários focados na sua aprendizagem.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Materiais & Atividades</h3>
+                <p>Listas de exercícios, resumos em PDF e conteúdos complementares para fixação do conhecimento.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Para Todas as Idades</h3>
+                <p>Módulos preparados para quem está no ensino médio, se preparando para vestibulares ou retomando os estudos.</p>
+            </div>
+            <div class="feature-item">
+                <h3>Comunidade Voluntária</h3>
+                <p>Rede colaborativa onde professores e alunos se conectam para transformar a educação.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Áreas de Estudo (Renderização Dinâmica do Flask) -->
+    <section class="subjects" id="materias">
+        <h2 class="section-title">Conteúdos Disponíveis</h2>
+        <div class="subject-tags">
+            {% for materia in materias %}
+                <span class="tag">{{ materia }}</span>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Para Professores / Voluntários -->
+    <section class="volunteer-section" id="professores">
+        <h2>Seja um Professor Voluntário</h2>
+        <p>Compartilhe seu conhecimento, ajude a democratizar o acesso à educação no país e faça parte de um impacto social real.</p>
+        <button class="btn btn-accent" onclick="openModal('professor')">Cadastre-se como Voluntário</button>
+    </section>
+{% endblock %}
