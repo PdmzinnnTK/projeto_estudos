@@ -353,3 +353,83 @@ footer {
     text-decoration: none;
     font-weight: 600;
 }   
+
+/* Tags Clicáveis na Home */
+.tag-link {
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.tag-link:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Layout da Página de Matéria */
+.materia-container {
+    max-width: 1200px;
+    margin: 3rem auto;
+    padding: 0 2rem;
+}
+
+.materia-header {
+    margin-bottom: 2.5rem;
+}
+
+.btn-voltar {
+    display: inline-block;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.btn-voltar:hover {
+    text-decoration: underline;
+}
+
+.conteudos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.card-conteudo {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.card-conteudo h3 {
+    margin: 0.8rem 0 0.5rem 0;
+    color: var(--primary-dark);
+}
+
+.card-conteudo p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-video { background-color: #e2e8f0; color: #2b6cb0; }
+.badge-pdf { background-color: #feebc8; color: #c05621; }
+.badge-exercicio { background-color: #c6f6d5; color: #22543d; }
+
+.sem-conteudo {
+    background: var(--white);
+    padding: 3rem;
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--text-muted);
+}

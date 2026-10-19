@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ materia_nome }} - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <div class="materia-header">
+        <a href="{{ url_for('index') }}" class="btn-voltar">&larr; Voltar às Matérias</a>
+        <h1>Aulas e Materiais de {{ materia_nome }}</h1>
+        <p>Abaixo estão os conteúdos disponíveis para estudo nesta matéria.</p>
+    </div>
+
+    {% if conteudos %}
+        <div class="conteudos-grid">
+            {% for c in conteudos %}
+                <div class="card-conteudo">
+                    <span class="badge badge-{{ c.tipo_conteudo.lower() }}">{{ c.tipo_conteudo.upper() }}</span>
+                    <h3>{{ c.titulo }}</h3>
+                    <p>{{ c.descricao }}</p>
+                    <a href="{{ c.link }}" target="_blank" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Acessar Material</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="sem-conteudo">
+            <p>Nenhum conteúdo cadastrado para <strong>{{ materia_nome }}</strong> ainda.</p>
+            {% if usuario and usuario.perfil == 'professor' %}
+                <p>Você é um professor! Em breve poderá adicionar novos materiais aqui.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

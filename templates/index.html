@@ -47,12 +47,12 @@
         </div>
     </section>
 
-    <!-- Áreas de Estudo (Renderização Dinâmica do Flask) -->
+    <!-- Áreas de Estudo (Links Clicáveis para cada Matéria) -->
     <section class="subjects" id="materias">
         <h2 class="section-title">Conteúdos Disponíveis</h2>
         <div class="subject-tags">
-            {% for materia in materias %}
-                <span class="tag">{{ materia }}</span>
+            {% for slug, nome in materias.items() %}
+                <a href="{{ url_for('ver_materia', slug=slug) }}" class="tag tag-link">{{ nome }}</a>
             {% endfor %}
         </div>
     </section>
@@ -61,6 +61,6 @@
     <section class="volunteer-section" id="professores">
         <h2>Seja um Professor Voluntário</h2>
         <p>Compartilhe seu conhecimento, ajude a democratizar o acesso à educação no país e faça parte de um impacto social real.</p>
-        <button class="btn btn-accent" onclick="openModal('professor')">Cadastre-se como Voluntário</button>
+        <button class="btn btn-accent" onclick="openAuthModal('cadastro', 'professor')">Cadastre-se como Voluntário</button>
     </section>
 {% endblock %}
