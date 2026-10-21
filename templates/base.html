@@ -4,44 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pro Estudos - Educação Gratuita e Acessível{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* ESTILOS DO MODAL E COMPONENTES DE AUTENTICAÇÃO */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 43, 98, 0.65);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 440px;
+            position: relative;
+            box-shadow: 0 18px 50px rgba(19, 64, 101, 0.25);
+            color: #0a2b62;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 18px;
+            font-size: 24px;
+            border: none;
+            background: none;
+            color: #7186a1;
+            cursor: pointer;
+        }
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0eaf2;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #59708e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #00a875;
+            border-bottom: 3px solid #00a875;
+        }
+        .form-step {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-step.active {
+            display: flex;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #183765;
+        }
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #ccd9e7;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #00a875;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #183765;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Cabeçalho -->
-    <header>
-        <nav class="navbar">
-            <a href="{{ url_for('index') }}" class="logo">Pro<span>Estudos</span></a>
-            <ul class="nav-links">
-                <li><a href="#inicio">Início</a></li>
-                <li><a href="#recursos">Recursos</a></li>
-                <li><a href="#materias">Matérias</a></li>
-                <li><a href="#professores">Para Professores</a></li>
-            </ul>
+    <!-- BARRA SUPERIOR DE NAVEGAÇÃO (TOPBAR) -->
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">
+            🎓 Pro<span>Estudos</span>
+        </a>
 
+        <nav class="nav-links">
+            <a href="{{ url_for('index') }}#inicio">Início</a>
+            <a href="{{ url_for('index') }}#recursos">Recursos</a>
+            <a href="{{ url_for('index') }}#materias">Matérias</a>
+            <a href="{{ url_for('index') }}#professores">Para Professores</a>
+        </nav>
+
+        <div class="nav-actions">
             {% if usuario %}
                 <div class="user-badge">
-                    <span>Olá, <strong>{{ usuario.nome }}</strong> ({{ usuario.perfil.capitalize() }})</span>
-                    <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+                    <span>Olá, <strong>{{ usuario.email.split('@')[0] }}</strong> ({{ usuario.perfil|capitalize }})</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-accent btn-sm">Sair</a>
                 </div>
             {% else %}
-                <button class="btn btn-primary" onclick="openAuthModal('login')">Acessar Plataforma</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAuthModal('login')">Acessar Plataforma</button>
             {% endif %}
-        </nav>
+        </div>
     </header>
 
-    <main>
+    <!-- CONTEÚDO PRINCIPAL DA PÁGINA -->
+    <main class="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Modal Único (Login e Cadastro) -->
-    <div class="modal" id="authModal">
+    <!-- MODAL ÚNICO DE AUTENTICAÇÃO (LOGIN E CADASTRO) -->
+    <div class="modal" id="authModal" style="display: none;">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+            <button type="button" class="modal-close" onclick="closeAuthModal()">&times;</button>
             
             <div class="modal-tabs">
-                <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
-                <button class="tab-btn" id="tabCadastro" onclick="switchTab('cadastro')">Criar Conta</button>
+                <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
+                <button type="button" class="tab-btn" id="tabCadastro" onclick="switchTab('cadastro')">Criar Conta</button>
             </div>
 
             <!-- Formulário de Login -->
@@ -54,14 +145,14 @@
                     <label for="loginSenha">Senha</label>
                     <input type="password" id="loginSenha" required placeholder="Sua senha">
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Entrar</button>
             </form>
 
             <!-- Formulário de Cadastro -->
             <form id="cadastroForm" class="form-step" onsubmit="handleCadastroSubmit(event)">
                 <div class="form-group">
                     <label for="cadNome">Nome Completo</label>
-                    <input type="text" id="cadNome" required placeholder="Seu nome">
+                    <input type="text" id="cadNome" required placeholder="Seu nome completo">
                 </div>
                 <div class="form-group">
                     <label for="cadEmail">E-mail</label>
@@ -78,34 +169,55 @@
                         <option value="professor">Professor(a) Voluntário(a)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Cadastrar e Entrar</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Cadastrar e Entrar</button>
             </form>
         </div>
     </div>
 
-    <footer>
+    <!-- RODAPÉ -->
+    <footer style="text-align: center; padding: 25px 20px; color: #59708e; font-size: 13px;">
         <p>&copy; 2026 Pro Estudos. Plataforma Educacional Aberta e Gratuita.</p>
     </footer>
 
+    <!-- SCRIPTS DE AUTENTICAÇÃO E CONTROLO DOS MODAIS -->
     <script>
         function openAuthModal(aba = 'login', perfil = 'aluno') {
-            document.getElementById('authModal').style.display = 'flex';
-            if (perfil === 'professor') {
-                document.getElementById('cadPerfil').value = 'professor';
+            const modal = document.getElementById('authModal');
+            if (!modal) return;
+            
+            modal.style.display = 'flex';
+            
+            const selectPerfil = document.getElementById('cadPerfil');
+            if (selectPerfil && perfil) {
+                selectPerfil.value = perfil;
             }
+            
             switchTab(aba);
         }
 
         function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
+            const modal = document.getElementById('authModal');
+            if (modal) modal.style.display = 'none';
         }
 
         function switchTab(aba) {
             const isLogin = aba === 'login';
-            document.getElementById('tabLogin').classList.toggle('active', isLogin);
-            document.getElementById('tabCadastro').classList.toggle('active', !isLogin);
-            document.getElementById('loginForm').classList.toggle('active', isLogin);
-            document.getElementById('cadastroForm').classList.toggle('active', !isLogin);
+            
+            const tabLogin = document.getElementById('tabLogin');
+            const tabCadastro = document.getElementById('tabCadastro');
+            const loginForm = document.getElementById('loginForm');
+            const cadastroForm = document.getElementById('cadastroForm');
+
+            if (tabLogin) tabLogin.classList.toggle('active', isLogin);
+            if (tabCadastro) tabCadastro.classList.toggle('active', !isLogin);
+            if (loginForm) {
+                loginForm.classList.toggle('active', isLogin);
+                loginForm.style.display = isLogin ? 'flex' : 'none';
+            }
+            if (cadastroForm) {
+                cadastroForm.classList.toggle('active', !isLogin);
+                cadastroForm.style.display = !isLogin ? 'flex' : 'none';
+            }
         }
 
         async function handleLoginSubmit(event) {
@@ -113,17 +225,21 @@
             const email = document.getElementById('loginEmail').value;
             const senha = document.getElementById('loginSenha').value;
 
-            const res = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, senha })
-            });
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
 
-            const data = await res.json();
-            if (res.ok) {
-                window.location.reload();
-            } else {
-                alert(data.message);
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar login.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
             }
         }
 
@@ -134,22 +250,27 @@
             const senha = document.getElementById('cadSenha').value;
             const perfil = document.getElementById('cadPerfil').value;
 
-            const res = await fetch('/cadastrar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, email, senha, perfil })
-            });
+            try {
+                const res = await fetch('/cadastrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha, perfil })
+                });
 
-            const data = await res.json();
-            if (res.ok) {
-                window.location.reload();
-            } else {
-                alert(data.message);
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar cadastro.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
             }
         }
 
         window.onclick = function(e) {
-            if (e.target === document.getElementById('authModal')) closeAuthModal();
+            const modal = document.getElementById('authModal');
+            if (e.target === modal) closeAuthModal();
         }
     </script>
 </body>

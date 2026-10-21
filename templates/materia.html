@@ -4,30 +4,43 @@
 
 {% block content %}
 <div class="materia-container">
+    <!-- Botão Estilizado de Voltar -->
+    <a href="{{ url_for('index') }}#materias" class="btn-voltar">
+        ← Voltar às Matérias
+    </a>
+
+    <!-- Cabeçalho da Matéria -->
     <div class="materia-header">
-        <a href="{{ url_for('index') }}" class="btn-voltar">&larr; Voltar às Matérias</a>
-        <h1>Aulas e Materiais de {{ materia_nome }}</h1>
+        <h1>Aulas e Materiais de <span>{{ materia_nome }}</span></h1>
         <p>Abaixo estão os conteúdos disponíveis para estudo nesta matéria.</p>
     </div>
 
-    {% if conteudos %}
-        <div class="conteudos-grid">
+    <!-- Grelha de Conteúdos -->
+    <div class="conteudos-grid">
+        {% if conteudos %}
             {% for c in conteudos %}
                 <div class="card-conteudo">
-                    <span class="badge badge-{{ c.tipo_conteudo.lower() }}">{{ c.tipo_conteudo.upper() }}</span>
-                    <h3>{{ c.titulo }}</h3>
-                    <p>{{ c.descricao }}</p>
-                    <a href="{{ c.link }}" target="_blank" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Acessar Material</a>
+                    <div>
+                        <span class="badge-tipo">{{ c.tipo_conteudo }}</span>
+                        <h3>{{ c.titulo }}</h3>
+                        <p class="tema"><strong>Tema:</strong> {{ c.tema }}</p>
+                        {% if c.descricao %}
+                            <p class="descricao">{{ c.descricao }}</p>
+                        {% endif %}
+                    </div>
+                    {% if c.link %}
+                        <a href="{{ c.link }}" target="_blank" class="btn btn-primary btn-sm" style="margin-top: 15px; width: 100%; text-align: center;">Acessar Material</a>
+                    {% endif %}
                 </div>
             {% endfor %}
-        </div>
-    {% else %}
-        <div class="sem-conteudo">
-            <p>Nenhum conteúdo cadastrado para <strong>{{ materia_nome }}</strong> ainda.</p>
-            {% if usuario and usuario.perfil == 'professor' %}
-                <p>Você é um professor! Em breve poderá adicionar novos materiais aqui.</p>
-            {% endif %}
-        </div>
-    {% endif %}
+        {% else %}
+            <!-- Estado Vazio (Sem materiais) -->
+            <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <h3>Nenhum conteúdo cadastrado</h3>
+                <p>Ainda não existem materiais cadastrados para <strong>{{ materia_nome }}</strong>.</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

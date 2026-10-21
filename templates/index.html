@@ -3,22 +3,26 @@
 {% block title %}Início - Pro Estudos{% endblock %}
 
 {% block content %}
+    <!-- Inclusão do CSS com a Nova Identidade Visual EstudaPro -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
     <!-- Hero Section -->
     <section class="hero" id="inicio">
         <div class="hero-content">
-            <h1>Aprender nunca foi tão simples e acessível.</h1>
-            <p>O Pro Estudos é uma plataforma 100% gratuita desenvolvida para apoiar estudantes de todas as idades, do ensino médio até a educação de adultos, com o apoio de professores voluntários.</p>
+            <span class="eyebrow">APRENDA · ORGANIZE · EVOLUA</span>
+            <h1>Seu estudo <span>mais simples</span> e eficiente.</h1>
+            <p>O Pro Estudos é uma plataforma gratuita desenvolvida para apoiar estudantes de todas as idades, do ensino médio até a educação de adultos, com suporte de professores voluntários.</p>
             <div class="hero-buttons">
                 <button class="btn btn-primary" onclick="openAuthModal('cadastro', 'aluno')">Quero Estudar</button>
                 <button class="btn btn-accent" onclick="openAuthModal('cadastro', 'professor')">Quero Ensinar</button>
             </div>
         </div>
         <div class="hero-card">
-            <h3>Comece Agora Mesmo</h3>
-            <p>Acesse vídeos, resumos, exercícios práticos e tire dúvidas de forma direta.</p>
+            <h3>Visão Geral do Estudo</h3>
+            <p>Acesse vídeos, resumos e conteúdos práticos.</p>
             <div class="hero-highlights">
-                ✓ Sem mensalidades <br>
-                ✓ Conteúdo para todas as idades <br>
+                ✓ 100% gratuito para começar<br>
+                ✓ Conteúdo para todas as idades<br>
                 ✓ Materiais criados por educadores
             </div>
         </div>
@@ -26,21 +30,25 @@
 
     <!-- Recursos -->
     <section class="features" id="recursos">
-        <h2 class="section-title">O que você encontra no Pro Estudos</h2>
+        <h2 class="section-title">Uma forma mais inteligente de estudar</h2>
         <div class="features-grid">
             <div class="feature-item">
+                <div class="feature-icon-box">📹</div>
                 <h3>Aulas em Vídeo</h3>
                 <p>Explicações diretas e dinâmicas preparadas por voluntários focados na sua aprendizagem.</p>
             </div>
             <div class="feature-item">
+                <div class="feature-icon-box">📚</div>
                 <h3>Materiais & Atividades</h3>
                 <p>Listas de exercícios, resumos em PDF e conteúdos complementares para fixação do conhecimento.</p>
             </div>
             <div class="feature-item">
+                <div class="feature-icon-box">🎯</div>
                 <h3>Para Todas as Idades</h3>
                 <p>Módulos preparados para quem está no ensino médio, se preparando para vestibulares ou retomando os estudos.</p>
             </div>
             <div class="feature-item">
+                <div class="feature-icon-box">🤝</div>
                 <h3>Comunidade Voluntária</h3>
                 <p>Rede colaborativa onde professores e alunos se conectam para transformar a educação.</p>
             </div>
@@ -52,7 +60,7 @@
         <h2 class="section-title">Conteúdos Disponíveis</h2>
         <div class="subject-tags">
             {% for slug, nome in materias.items() %}
-                <a href="{{ url_for('ver_materia', slug=slug) }}" class="tag tag-link">{{ nome }}</a>
+                <a href="{{ url_for('ver_materia', slug=slug) }}" class="tag-link">{{ nome }}</a>
             {% endfor %}
         </div>
     </section>
@@ -61,14 +69,14 @@
     <section class="volunteer-section" id="professores">
         <h2>Seja um Professor Voluntário</h2>
         <p>Compartilhe seu conhecimento, ajude a democratizar o acesso à educação no país e faça parte de um impacto social real.</p>
-        <button class="btn btn-accent" onclick="openAuthModal('cadastro', 'professor')">Cadastre-se como Voluntário</button>
+        <button class="btn btn-primary" onclick="openAuthModal('cadastro', 'professor')">Cadastre-se como Voluntário</button>
     </section>
 
     <!-- ========================================== -->
     <!-- RECURSOS INTERATIVOS (MENSAGENS & MATERIAIS) -->
     <!-- ========================================== -->
     {% if usuario %}
-        <!-- Estilos para os Botões Flutuantes e Modais -->
+        <!-- Estilos para os Botões Flutuantes e Modais Integrados -->
         <style>
             .btn-flutuante-container {
                 position: fixed;
@@ -80,44 +88,44 @@
                 z-index: 9999;
             }
             .btn-interativo {
-                background-color: #0d6efd;
+                background: linear-gradient(100deg, #08b96e, #009968);
                 color: white;
                 border: none;
-                padding: 12px 20px;
+                padding: 12px 22px;
                 border-radius: 30px;
-                font-weight: bold;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+                font-weight: 700;
+                box-shadow: 0 5px 15px rgba(0, 168, 112, 0.3);
                 cursor: pointer;
                 transition: transform 0.2s, background-color 0.2s;
                 font-size: 14px;
             }
             .btn-interativo:hover {
                 transform: scale(1.05);
-                background-color: #0b5ed7;
             }
-            .btn-interativo.verde { background-color: #198754; }
-            .btn-interativo.verde:hover { background-color: #157347; }
+            .btn-interativo.azul { 
+                background: linear-gradient(100deg, #0a2b62, #183765);
+            }
 
             .modal-custom {
                 display: none;
                 position: fixed;
                 top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.6);
+                background: rgba(10, 43, 98, 0.6);
                 z-index: 10000;
                 justify-content: center;
                 align-items: center;
             }
             .modal-conteudo {
                 background: white;
-                padding: 25px;
-                border-radius: 12px;
+                padding: 28px;
+                border-radius: 16px;
                 width: 90%;
                 max-width: 520px;
                 max-height: 85vh;
                 overflow-y: auto;
                 position: relative;
-                color: #333;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                color: #0a2b62;
+                box-shadow: 0 18px 50px rgba(19, 64, 101, 0.2);
             }
             .fechar-modal {
                 position: absolute;
@@ -126,27 +134,28 @@
                 cursor: pointer;
                 border: none;
                 background: none;
-                color: #666;
+                color: #7186a1;
             }
             .modal-conteudo input, .modal-conteudo select, .modal-conteudo textarea {
                 width: 100%;
-                padding: 8px 12px;
-                margin-top: 4px;
+                padding: 10px 12px;
+                margin-top: 5px;
                 margin-bottom: 12px;
-                border: 1px solid #ccc;
+                border: 1px solid #ccd9e7;
                 border-radius: 6px;
                 box-sizing: border-box;
+                font-family: inherit;
             }
         </style>
 
         <!-- Botões Flutuantes de Ação Rápida -->
         <div class="btn-flutuante-container">
-            <button class="btn-interativo" onclick="abrirModal('modalMensagens')">
+            <button class="btn-interativo azul" onclick="abrirModal('modalMensagens')">
                 💬 Mensagens / Dúvidas ({% if mensagens %}{{ mensagens|length }}{% else %}0{% endif %})
             </button>
 
             {% if usuario.perfil == 'professor' %}
-                <button class="btn-interativo verde" onclick="abrirModal('modalNovoMaterial')">
+                <button class="btn-interativo" onclick="abrirModal('modalNovoMaterial')">
                     ➕ Adicionar Material
                 </button>
             {% endif %}
@@ -158,7 +167,7 @@
                 <button class="fechar-modal" onclick="fecharModal('modalMensagens')">&times;</button>
                 
                 {% if usuario.perfil == 'aluno' %}
-                    <h3>Enviar Dúvida ou Sugestão</h3>
+                    <h3 style="margin-bottom:12px;">Enviar Dúvida ou Sugestão</h3>
                     <form id="formMensagem" onsubmit="enviarMensagem(event)">
                         <label>Tipo de mensagem:</label>
                         <select id="msg_tipo">
@@ -183,17 +192,17 @@
                         <button type="submit" class="btn-interativo" style="width:100%;">Enviar Mensagem</button>
                     </form>
 
-                    <hr style="margin: 20px 0;">
+                    <hr style="margin: 20px 0; border:0; border-top:1px solid #e0eaf2;">
                     <h4>Minhas Mensagens Enviadas</h4>
                     {% if not mensagens %}
-                        <p style="color:#777; font-size:14px;">Você ainda não enviou nenhuma mensagem.</p>
+                        <p style="color:#7186a1; font-size:14px; margin-top:8px;">Você ainda não enviou nenhuma mensagem.</p>
                     {% endif %}
                     {% for m in mensagens %}
-                        <div style="background:#f8f9fa; padding:12px; margin-bottom:10px; border-radius:8px; border-left: 4px solid #0d6efd;">
+                        <div style="background:#f2f8fc; padding:12px; margin-top:10px; border-radius:8px; border-left: 4px solid #00a875;">
                             <strong>[{{ m.tipo|upper }}] {{ m.assunto }}</strong>
-                            <p style="margin:6px 0; font-size:14px; color:#444;">{{ m.conteudo }}</p>
+                            <p style="margin:6px 0; font-size:14px; color:#315174;">{{ m.conteudo }}</p>
                             {% if m.resposta %}
-                                <p style="color:#198754; margin:4px 0 0 0; font-size:13px;"><strong>Resposta do Professor:</strong> {{ m.resposta }}</p>
+                                <p style="color:#00a875; margin:4px 0 0 0; font-size:13px;"><strong>Resposta do Professor:</strong> {{ m.resposta }}</p>
                             {% else %}
                                 <small style="color:#fd7e14;">Aguardando resposta do professor...</small>
                             {% endif %}
@@ -201,21 +210,21 @@
                     {% endfor %}
 
                 {% elif usuario.perfil == 'professor' %}
-                    <h3>Caixa de Mensagens Recebidas</h3>
+                    <h3 style="margin-bottom:12px;">Caixa de Mensagens Recebidas</h3>
                     {% if not mensagens %}
-                        <p style="color:#777;">Nenhuma mensagem recebida no momento.</p>
+                        <p style="color:#7186a1;">Nenhuma mensagem recebida no momento.</p>
                     {% endif %}
                     {% for m in mensagens %}
-                        <div style="background:#f8f9fa; padding:12px; margin-bottom:12px; border-radius:8px; border-left: 4px solid #198754;">
-                            <small style="color:#666;"><strong>Mensagem de Aluno</strong> | {{ m.tipo|upper }}</small>
+                        <div style="background:#f2f8fc; padding:12px; margin-bottom:12px; border-radius:8px; border-left: 4px solid #00a875;">
+                            <small style="color:#7186a1;"><strong>Mensagem de Aluno</strong> | {{ m.tipo|upper }}</small>
                             <h5 style="margin: 4px 0;">{{ m.assunto }}</h5>
-                            <p style="margin: 6px 0; font-size:14px;">{{ m.conteudo }}</p>
+                            <p style="margin: 6px 0; font-size:14px; color:#315174;">{{ m.conteudo }}</p>
                             {% if m.resposta %}
-                                <p style="color:#198754; margin-top:8px; font-size:13px;"><strong>Sua Resposta:</strong> {{ m.resposta }}</p>
+                                <p style="color:#00a875; margin-top:8px; font-size:13px;"><strong>Sua Resposta:</strong> {{ m.resposta }}</p>
                             {% else %}
                                 <form onsubmit="responderMensagem(event, {{ m.id_mensagem }})" style="margin-top:10px;">
                                     <input type="text" placeholder="Escreva sua resposta..." id="resp_{{ m.id_mensagem }}" required style="width:68%; display:inline-block; margin-bottom:0;">
-                                    <button type="submit" class="btn-interativo verde" style="padding:8px 12px; font-size:12px; display:inline-block;">Responder</button>
+                                    <button type="submit" class="btn-interativo" style="padding:8px 12px; font-size:12px; display:inline-block;">Responder</button>
                                 </form>
                             {% endif %}
                         </div>
@@ -223,7 +232,7 @@
 
                 {% elif usuario.perfil == 'admin' %}
                     <h3>Painel Administrativo</h3>
-                    <p style="color:#666;">Bem-vindo, Administrador! Você tem acesso completo aos privilégios do sistema.</p>
+                    <p style="color:#7186a1; margin-top:8px;">Bem-vindo, Administrador! Você possui acesso gerencial aos cadastros do sistema.</p>
                 {% endif %}
             </div>
         </div>
@@ -233,7 +242,7 @@
             <div id="modalNovoMaterial" class="modal-custom">
                 <div class="modal-conteudo">
                     <button class="fechar-modal" onclick="fecharModal('modalNovoMaterial')">&times;</button>
-                    <h3>Publicar Novo Material</h3>
+                    <h3 style="margin-bottom:12px;">Publicar Novo Material</h3>
                     <form onsubmit="cadastrarMaterial(event)">
                         <label>Título do Conteúdo:</label>
                         <input type="text" id="mat_titulo" placeholder="Ex: Apostila de Álgebra Linear" required>
@@ -261,7 +270,7 @@
                         <label>Link Externo (Opcional):</label>
                         <input type="url" id="mat_link" placeholder="https://youtube.com/...">
 
-                        <button type="submit" class="btn-interativo verde" style="width:100%; margin-top:10px;">Publicar Conteúdo</button>
+                        <button type="submit" class="btn-interativo" style="width:100%; margin-top:10px;">Publicar Conteúdo</button>
                     </form>
                 </div>
             </div>
