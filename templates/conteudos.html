@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Conteúdos Disponíveis - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">← Voltar ao Início</a>
+
+    <div class="materia-header">
+        <h1>Conteúdos e <span>Matérias Disponíveis</span></h1>
+        <p>Escolha uma matéria para explorar apostilas, PDFs, tópicos e exercícios práticos.</p>
+    </div>
+
+    <!-- LISTA DE TAGS DE MATÉRIAS -->
+    <div class="subject-tags" style="margin-bottom: 40px;">
+        {% for slug, nome in materias.items() %}
+            <a href="{{ url_for('ver_materia', slug=slug) }}" class="tag-link">{{ nome }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- TODOS OS MATERIAIS RECENTES -->
+    <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">Últimos Materiais Publicados</h2>
+    <div class="conteudos-grid">
+        {% if conteudos %}
+            {% for c in conteudos %}
+                <div class="card-conteudo">
+                    <div>
+                        <span class="badge-tipo">{{ c.tipo_conteudo }}</span>
+                        <h3>{{ c.titulo }}</h3>
+                        <p class="tema"><strong>Matéria:</strong> {{ c.materia }} | <strong>Tema:</strong> {{ c.tema }}</p>
+                        {% if c.descricao %}
+                            <p class="descricao">{{ c.descricao }}</p>
+                        {% endif %}
+                    </div>
+                    {% if c.link %}
+                        <a href="{{ c.link }}" target="_blank" class="btn btn-primary btn-sm" style="margin-top: 15px; width: 100%; text-align: center;">Acessar Material</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <h3>Nenhum conteúdo publicado ainda</h3>
+                <p>Nossos professores voluntários estão preparando novos materiais.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

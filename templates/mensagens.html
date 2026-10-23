@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Central de Mensagens - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <!-- Botão Voltar ao Início -->
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <!-- Cabeçalho -->
+    <div class="materia-header">
+        <h1>Central de <span>Mensagens e Dúvidas</span></h1>
+        <p>Tire suas dúvidas diretamente com nossos professores voluntários ou acompanhe suas respostas.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px;">
+        
+        {% if usuario and usuario.perfil == 'aluno' %}
+            <!-- FORMULÁRIO DE ENVIO DE DÚVIDA/SUGESTÃO -->
+            <div class="card-conteudo" style="height: fit-content;">
+                <h3>💬 Nova Mensagem</h3>
+                <form id="formMensagemPagina" onsubmit="enviarMensagemPagina(event)" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="msg_tipo_pag">Tipo de Mensagem:</label>
+                        <select id="msg_tipo_pag" required>
+                            <option value="duvida">Dúvida</option>
+                            <option value="sugestao">Sugestão</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_prof_pag">Para qual Professor?</label>
+                        <select id="msg_prof_pag">
+                            <option value="">Todos os Professores (Geral)</option>
+                            {% for prof in professores %}
+                                <option value="{{ prof.id_professor }}">{{ prof.nome }} ({% if prof.materia_especialidade %}{{ prof.materia_especialidade }}{% else %}Geral{% endif %})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_assunto_pag">Assunto:</label>
+                        <input type="text" id="msg_assunto_pag" placeholder="Ex: Dúvida sobre Equações" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="msg_conteudo_pag">Mensagem:</label>
+                        <textarea id="msg_conteudo_pag" rows="4" placeholder="Escreva aqui detalhadamente..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 5px;">Enviar Mensagem (+5 pts)</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- LISTA DE MENSAGENS E DÚVIDAS -->
+        <div style="grid-column: {% if usuario and usuario.perfil == 'aluno' %}auto{% else %}1 / -1{% endif %};">
+            <div class="card-conteudo">
+                <h3>
+                    {% if usuario and usuario.perfil == 'aluno' %}
+                        📜 Minhas Dúvidas e Sugestões
+                    {% else %}
+                        📥 Caixa de Mensagens Recebidas {% if usuario and usuario.perfil == 'admin' %}(Modo Administrador){% endif %}
+                    {% endif %}
+                </h3>
+
+                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px;">
+                    {% if not mensagens %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📬</div>
+                            <h3>Nenhuma mensagem encontrada</h3>
+                            <p>Não existem mensagens cadastradas nesta área no momento.</p>
+                        </div>
+                    {% endif %}
+
+                    {% for m in mensagens %}
+                        <div style="background:#f2f8fc; padding:16px; border-radius:12px; border-left: 5px solid #00a875; position:relative; box-shadow: 0 2px 8px rgba(10,43,98,0.04);">
+                            <button type="button" onclick="excluirMensagemPagina({{ m.id_mensagem }})" style="position: absolute; top: 12px; right: 12px; border: none; background: none; color: #dc3545; cursor: pointer; font-weight: 700; font-size: 13px;">
+                                🗑️ Excluir
+                            </button>
+                            
+                            <div style="margin-bottom: 6px;">
+                                <span class="badge-tipo">{{ m.tipo|upper }}</span>
+                                {% if usuario and usuario.perfil in ['professor', 'admin'] and m.aluno %}
+                                    <small style="color:#59708e; margin-left: 8px;"><strong>Aluno:</strong> {{ m.aluno.nome }}</small>
+                                {% endif %}
+                            </div>
+
+                            <h4 style="font-size: 16px; color: #0a2b62; margin-bottom: 6px; padding-right: 70px;">{{ m.assunto }}</h4>
+                            <p style="font-size: 14px; color: #315174; line-height: 1.5; margin-bottom: 10px;">{{ m.conteudo }}</p>
+
+                            {% if m.resposta %}
+                                <div style="background: #ffffff; padding: 12px; border-radius: 8px; border: 1px solid #ccd9e7; margin-top: 8px;">
+                                    <p style="color: #00a875; font-size: 13px; margin: 0;">
+                                        <strong>Resposta do Professor:</strong> {{ m.resposta }}
+                                    </p>
+                                </div>
+                            {% else %}
+                                {% if usuario and usuario.perfil in ['professor', 'admin'] %}
+                                    <form onsubmit="responderMensagemPagina(event, {{ m.id_mensagem }})" style="margin-top: 10px; display: flex; gap: 8px;">
+                                        <input type="text" id="resp_pag_{{ m.id_mensagem }}" placeholder="Escreva sua resposta..." required style="flex: 1; padding: 8px 12px; border: 1px solid #ccd9e7; border-radius: 6px; font-size: 13px;">
+                                        <button type="submit" class="btn btn-primary btn-sm">Responder</button>
+                                    </form>
+                                {% else %}
+                                    <small style="color: #fd7e14; font-weight: 600;">⏳ Aguardando resposta do professor...</small>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- SCRIPTS INTERATIVOS DA PÁGINA -->
+<script>
+    async function enviarMensagemPagina(e) {
+        e.preventDefault();
+        const res = await fetch('/enviar_mensagem', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                tipo: document.getElementById('msg_tipo_pag').value,
+                id_professor: document.getElementById('msg_prof_pag').value,
+                assunto: document.getElementById('msg_assunto_pag').value,
+                conteudo: document.getElementById('msg_conteudo_pag').value
+            })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if(res.ok) location.reload();
+    }
+
+    async function responderMensagemPagina(e, id) {
+        e.preventDefault();
+        const resposta = document.getElementById('resp_pag_' + id).value;
+        const res = await fetch('/professor/responder_mensagem/' + id, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ resposta })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if(res.ok) location.reload();
+    }
+
+    async function excluirMensagemPagina(id) {
+        if (!confirm('Deseja realmente excluir esta dúvida/mensagem?')) return;
+
+        const res = await fetch('/mensagem/excluir/' + id, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message);
+        if (res.ok) location.reload();
+    }
+</script>
+{% endblock %}

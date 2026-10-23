@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Ranking Global - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">← Voltar ao Início</a>
+
+    <section class="leaderboard-section" style="margin-top:0;">
+        <h2 class="section-title">🏆 Tabela Global de Alunos</h2>
+        <p style="text-align:center; color:#59708e; margin-bottom:25px; margin-top:-15px;">
+            Acesse diariamente, resolva dúvidas e acumule pontos para chegar ao topo do ranking!
+        </p>
+
+        <div class="leaderboard-card">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Aluno(a)</th>
+                        <th>Sequência</th>
+                        <th>Pontos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if ranking %}
+                        {% for aluno in ranking %}
+                            <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
+                                <td class="rank-position">
+                                    {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}º{% endif %}
+                                </td>
+                                <td class="student-name">
+                                    <strong>{{ aluno.nome }}</strong>
+                                    {% if usuario and usuario.id_aluno == aluno.id_aluno %}
+                                        <span class="tag-voce">Você</span>
+                                    {% endif %}
+                                </td>
+                                <td>🔥 {{ aluno.sequencia_dias or 1 }} dias</td>
+                                <td class="points-cell">⭐ {{ aluno.pontos or 0 }} pts</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align:center; padding:20px; color:#7186a1;">
+                                Nenhum aluno pontuou ainda. Seja o primeiro!
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

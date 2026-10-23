@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Para Professores - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">← Voltar ao Início</a>
+
+    <section class="volunteer-section" style="margin: 0 0 40px 0;">
+        <h2>Seja um Educador Voluntário</h2>
+        <p>Transforme vidas através do conhecimento. Publique conteúdos, responda dúvidas de estudantes de todo o país e contribua para uma educação acessível.</p>
+        {% if not usuario %}
+            <button type="button" class="btn btn-primary" onclick="openAuthModal('cadastro', 'professor')">Quero me Cadastrar como Professor</button>
+        {% endif %}
+    </section>
+
+    <div class="materia-header">
+        <h2>Nossa Rede de <span>Educadores</span></h2>
+        <p>Professores voluntários cadastrados na plataforma:</p>
+    </div>
+
+    <div class="conteudos-grid">
+        {% if professores %}
+            {% for prof in professores %}
+                <div class="card-conteudo">
+                    <div>
+                        <span class="badge-tipo">Professor Voluntário</span>
+                        <h3>{{ prof.nome }}</h3>
+                        <p class="tema"><strong>Especialidade:</strong> {{ prof.materia_especialidade or 'Geral / Múltiplas Áreas' }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">🧑‍🏫</div>
+                <h3>Nenhum professor exibido no momento</h3>
+                <p>Cadastre-se para ser o primeiro voluntário da rede!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

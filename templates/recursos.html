@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Recursos - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">← Voltar ao Início</a>
+    
+    <div class="materia-header">
+        <h1>Recursos e <span>Ferramentas de Aprendizagem</span></h1>
+        <p>Conheça tudo o que a plataforma oferece para alavancar os seus estudos gratuitamente.</p>
+    </div>
+
+    <div class="features-grid" style="margin-top: 20px;">
+        <div class="feature-item">
+            <div class="feature-icon-box">📹</div>
+            <h3>Videoaulas Dinâmicas</h3>
+            <p>Aulas focadas nos tópicos essenciais do Ensino Médio e Vestibulares, preparadas por educadores engajados.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">📄</div>
+            <h3>Apostilas em PDF</h3>
+            <p>Resumos e materiais de apoio baixáveis para você estudar offline no seu próprio ritmo.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">🔥</div>
+            <h3>Gamificação & Streaks</h3>
+            <p>Mantenha uma rotina diária de acesso para ganhar pontos, acumular sequências e liderar o ranking global.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">💬</div>
+            <h3>Atendimento com Professores</h3>
+            <p>Envie suas dúvidas diretamente para os educadores e receba orientações personalizadas.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

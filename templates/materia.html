@@ -12,7 +12,7 @@
     <!-- Cabeçalho da Matéria -->
     <div class="materia-header">
         <h1>Aulas e Materiais de <span>{{ materia_nome }}</span></h1>
-        <p>Abaixo estão os conteúdos disponíveis para estudo nesta matéria.</p>
+        <p>Abaixo estão os conteúdos disponíveis para estudo nesta matéria com todas as informações detalhadas.</p>
     </div>
 
     <!-- Grelha de Conteúdos -->
@@ -20,21 +20,52 @@
         {% if conteudos %}
             {% for c in conteudos %}
                 <div class="card-conteudo">
-                    <div>
-                        <span class="badge-tipo">{{ c.tipo_conteudo }}</span>
+                    <div class="card-conteudo-body">
+                        <!-- Informações do Topo (Tipo e Data) -->
+                        <div class="card-top-info">
+                            <span class="badge-tipo">{{ c.tipo_conteudo }}</span>
+                            {% if c.data_publicacao %}
+                                <span class="data-pub">📅 {{ c.data_publicacao.strftime('%d/%m/%Y') }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Título do Material -->
                         <h3>{{ c.titulo }}</h3>
-                        <p class="tema"><strong>Tema:</strong> {{ c.tema }}</p>
+                        
+                        <!-- Metadados (Tema e Autor) -->
+                        <div class="card-meta">
+                            <p class="tema"><strong>📌 Tema:</strong> {{ c.tema }}</p>
+                            {% if c.professor %}
+                                <p class="prof"><strong>👨‍🏫 Publicado por:</strong> {{ c.professor.nome }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Descrição -->
                         {% if c.descricao %}
                             <p class="descricao">{{ c.descricao }}</p>
                         {% endif %}
+
+                        <!-- Caixa do Link/URL visível -->
+                        {% if c.link %}
+                            <div class="url-box">
+                                <span class="url-label">🔗 Link de Destino:</span>
+                                <a href="{{ c.link }}" target="_blank" class="url-link" title="{{ c.link }}">{{ c.link }}</a>
+                            </div>
+                        {% endif %}
                     </div>
+
+                    <!-- Botão de Ação -->
                     {% if c.link %}
-                        <a href="{{ c.link }}" target="_blank" class="btn btn-primary btn-sm" style="margin-top: 15px; width: 100%; text-align: center;">Acessar Material</a>
+                        <a href="{{ c.link }}" target="_blank" class="btn btn-primary btn-sm btn-acessar">
+                            Acessar Material 🚀
+                        </a>
+                    {% else %}
+                        <span class="btn btn-accent btn-sm disabled-btn">Sem link anexado</span>
                     {% endif %}
                 </div>
             {% endfor %}
         {% else %}
-            <!-- Estado Vazio (Sem materiais) -->
+            <!-- Estado Vazio -->
             <div class="empty-state">
                 <div class="empty-icon">📚</div>
                 <h3>Nenhum conteúdo cadastrado</h3>
