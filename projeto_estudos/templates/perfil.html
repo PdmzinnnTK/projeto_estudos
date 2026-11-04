@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu Perfil - Pro Estudos{% endblock %}
+
+{% block content %}
+<!-- Cropper.js (Zoom e Corte de Foto) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<style>
+    .perfil-grid {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 850px) {
+        .perfil-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .card-perfil-header {
+        background: linear-gradient(135deg, #0a2b62, #183765);
+        color: white;
+        padding: 35px 20px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(10, 43, 98, 0.15);
+    }
+
+    .molduras-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .moldura-card {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #ffffff;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .moldura-card.desbloqueada:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(10, 43, 98, 0.12);
+    }
+
+    .moldura-card.equipada {
+        border-color: #00a875 !important;
+        background: #f0fdf4 !important;
+        box-shadow: 0 0 12px rgba(0, 168, 112, 0.3) !important;
+    }
+
+    .moldura-card.bloqueada {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f8fafc;
+    }
+
+    .btn-tema-primary {
+        background: linear-gradient(135deg, #00a875, #008f63);
+        color: #ffffff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 14px rgba(0, 168, 112, 0.35);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .btn-tema-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 168, 112, 0.45);
+    }
+
+    .btn-tema-secondary {
+        background: #e0eaf2;
+        color: #0a2b62;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-tema-secondary:hover {
+        background: #cbdcf0;
+    }
+
+    .cropper-modal-container {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 43, 98, 0.75);
+        z-index: 10001;
+        justify-content: center;
+        align-items: center;
+    }
+    .cropper-modal-box {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 18px 50px rgba(10, 43, 98, 0.3);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        color: #0a2b62;
+    }
+    .cropper-img-wrapper {
+        width: 100%;
+        max-height: 300px;
+        background: #0a2b62;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .cropper-img-wrapper img {
+        max-width: 100%;
+        display: block;
+    }
+</style>
+
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>👤 Meu <span>Perfil & Personalização</span></h1>
+        <p>Altere a sua foto de perfil, ajuste o zoom e atualize seus dados de exibição.</p>
+    </div>
+
+    <div class="perfil-grid">
+        
+        <!-- CARD DA ESQUERDA: PREVIEW DA FOTO E DADOS -->
+        <div class="card-perfil-header">
+            {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                <div id="previewMolduraFrame" class="patente-avatar-frame patente-avatar-frame-lg" style="background: {{ usuario.aluno.moldura_ativa_info.cor }}; box-shadow: 0 0 25px {{ usuario.aluno.moldura_ativa_info.cor }};">
+                    {% if usuario.aluno.foto and usuario.aluno.foto != 'default_avatar.png' %}
+                        <img id="avatarPreview" src="{{ url_for('static', filename='uploads/' + usuario.aluno.foto) }}" class="patente-avatar-img patente-avatar-img-lg" alt="Foto de Perfil">
+                    {% else %}
+                        <div class="patente-avatar-img patente-avatar-img-lg" style="display:flex; align-items:center; justify-content:center; font-size:50px;">👤</div>
+                    {% endif %}
+                </div>
+
+                <h2 style="margin: 20px 0 6px 0; color: #ffffff; font-size: 22px;">{{ usuario.aluno.nome }}</h2>
+                
+                <span id="badgePatenteEquipada" style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; background: {{ usuario.aluno.moldura_ativa_info.bg }}; color: {{ usuario.aluno.moldura_ativa_info.cor }}; margin-bottom: 15px;">
+                    {{ usuario.aluno.moldura_ativa_info.icone }} Moldura {{ usuario.aluno.moldura_ativa_info.nome }}
+                </span>
+
+                <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; font-size: 13px;">
+                    ⭐ Pontos: <strong>{{ usuario.aluno.pontos or 0 }}</strong> pts<br>
+                    🔥 Sequência: <strong>{{ usuario.aluno.sequencia_dias or 1 }}</strong> dias
+                </div>
+            {% else %}
+                <div style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #00a875; margin: 0 auto; overflow: hidden; background: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(0, 168, 112, 0.4);">
+                    {% if usuario.professor and usuario.professor.foto and usuario.professor.foto != 'default_avatar.png' %}
+                        <img id="avatarPreview" src="{{ url_for('static', filename='uploads/' + usuario.professor.foto) }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Foto de Perfil">
+                    {% else %}
+                        <div style="font-size: 55px; color: #0a2b62;">👨‍🏫</div>
+                    {% endif %}
+                </div>
+
+                <h2 style="margin: 20px 0 6px 0; color: #ffffff; font-size: 22px;">
+                    {% if usuario.professor %}{{ usuario.professor.nome }}{% else %}{{ usuario.email.split('@')[0] }}{% endif %}
+                </h2>
+                <span style="display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; background: #00a875; color: #ffffff; margin-bottom: 10px;">
+                    {% if usuario.perfil == 'admin' %}🛡️ ADMINISTRADOR{% else %}👨‍🏫 PROFESSOR{% endif %}
+                </span>
+            {% endif %}
+        </div>
+
+        <!-- FORMULÁRIO DE EDICÃO -->
+        <div class="card-conteudo">
+            <form id="formPerfil" action="{{ url_for('perfil') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- ALTERAÇÃO DE NOME E FOTO (PARA TODOS OS PERFIS) -->
+                <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 18px;">
+                    <h3 style="margin: 0 0 14px 0; color: #0a2b62; font-size: 18px;">✏️ Dados de Exibição</h3>
+                    
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label for="nome">Nome Completo / Apelido:</label>
+                        <input type="text" id="nome" name="nome" value="{% if usuario.aluno %}{{ usuario.aluno.nome }}{% elif usuario.professor %}{{ usuario.professor.nome }}{% else %}{{ usuario.email.split('@')[0] }}{% endif %}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Foto de Perfil (Zoom e Enquadramento):</label>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                            <label for="inputFoto" class="btn-tema-secondary" style="margin: 0; cursor: pointer; display: inline-block;">
+                                📷 Escolher Foto
+                            </label>
+                            <input type="file" id="inputFoto" accept="image/*" style="display: none;">
+                            <small style="color: #59708e;">Selecione uma imagem para ajustar e dar zoom.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MOLDURAS DA PATENTE (EXIBIDO APENAS PARA ALUNOS) -->
+                {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                    <div>
+                        <h3 style="margin: 0 0 6px 0; color: #0a2b62; font-size: 18px;">🖼️ Molduras Desbloqueadas</h3>
+                        <p style="font-size: 13px; color: #59708e; margin: 0 0 12px 0;">Equipe qualquer moldura de patente que você já conquistou no ranking:</p>
+                        
+                        <input type="hidden" id="moldura_equipada" name="moldura_equipada" value="{{ usuario.aluno.moldura_ativa_info.nome }}">
+
+                        <div class="molduras-grid">
+                            {% for m in usuario.aluno.todas_molduras_status %}
+                                <div class="moldura-card {% if m.desbloqueada %}desbloqueada{% else %}bloqueada{% endif %} {% if m.equipada %}equipada{% endif %}"
+                                     {% if m.desbloqueada %}onclick="selecionarMoldura('{{ m.nome }}', '{{ m.cor }}', '{{ m.bg }}', '{{ m.icone }}')"{% endif %}>
+                                    
+                                    <div class="patente-avatar-frame" style="background: {{ m.cor }}; width: 34px; height: 34px; padding: 2px;">
+                                        <div style="width: 100%; height: 100%; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                            {{ m.icone }}
+                                        </div>
+                                    </div>
+
+                                    <span style="font-size: 12px; font-weight: 800; color: #0a2b62;">{{ m.nome }}</span>
+
+                                    {% if m.equipada %}
+                                        <span style="font-size: 10px; background: #00a875; color: white; padding: 2px 6px; border-radius: 10px; font-weight: 700;">Em Uso</span>
+                                    {% elif m.desbloqueada %}
+                                        <span style="font-size: 10px; color: #00a875; font-weight: 700;">Usar</span>
+                                    {% else %}
+                                        <span style="font-size: 10px; color: #94a3b8;">🔒 {{ m.min_pontos }} pts</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- INFORMAÇÕES DA CONTA -->
+                <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>E-mail:</label>
+                        <input type="email" value="{{ usuario.email }}" disabled style="background: #f1f5f9; cursor: not-allowed; font-size: 13px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Conta:</label>
+                        <input type="text" value="{{ usuario.perfil|capitalize }}" disabled style="background: #f1f5f9; cursor: not-allowed; font-size: 13px;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-tema-primary" style="width: 100%; margin-top: 5px;">
+                    💾 Salvar Alterações do Perfil
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL CROPPER (ZOOM & ENQUADRAMENTO DA FOTO) -->
+<div id="modalCropper" class="cropper-modal-container">
+    <div class="cropper-modal-box">
+        <h3 style="margin: 0;">🔍 Ajustar Foto de Perfil</h3>
+        <p style="font-size: 13px; color: #59708e; margin: 0;">Use o mouse ou os botões para dar zoom e posicionar a imagem perfeitamente.</p>
+        
+        <div class="cropper-img-wrapper">
+            <img id="imageToCrop" src="" alt="Imagem para corte">
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" class="btn-tema-secondary" onclick="zoomCropper(0.1)">➕ Zoom In</button>
+            <button type="button" class="btn-tema-secondary" onclick="zoomCropper(-0.1)">➖ Zoom Out</button>
+            <button type="button" class="btn-tema-secondary" onclick="rotateCropper(90)">🔄 Girar</button>
+            <button type="button" class="btn-tema-secondary" onclick="resetCropper()">↩️ Resetar</button>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="button" class="btn-tema-primary" style="flex: 1;" onclick="confirmarCorte()">Aplicar Ajuste</button>
+            <button type="button" class="btn-tema-secondary" style="background: #e2e8f0; color: #59708e;" onclick="fecharModalCrop()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cropper = null;
+    let croppedBlob = null;
+    const inputFoto = document.getElementById('inputFoto');
+    const modalCropper = document.getElementById('modalCropper');
+    const imageToCrop = document.getElementById('imageToCrop');
+
+    if (inputFoto) {
+        inputFoto.addEventListener('change', function (e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imageToCrop.src = e.target.result;
+                    modalCropper.style.display = 'flex';
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 0.95,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    function zoomCropper(delta) { if (cropper) cropper.zoom(delta); }
+    function rotateCropper(deg) { if (cropper) cropper.rotate(deg); }
+    function resetCropper() { if (cropper) cropper.reset(); }
+
+    function fecharModalCrop() {
+        modalCropper.style.display = 'none';
+        if (inputFoto) inputFoto.value = '';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    }
+
+    function confirmarCorte() {
+        if (!cropper) return;
+
+        const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+        canvas.toBlob(function (blob) {
+            croppedBlob = blob;
+            modalCropper.style.display = 'none';
+            
+            const avatarPreview = document.getElementById('avatarPreview');
+            if (avatarPreview) {
+                avatarPreview.src = URL.createObjectURL(blob);
+            }
+            alert('Ajuste de foto pronto! Clique em "Salvar Alterações" para atualizar o perfil.');
+        }, 'image/jpeg', 0.92);
+    }
+
+    function selecionarMoldura(nome, cor, bg, icone) {
+        const inputMoldura = document.getElementById('moldura_equipada');
+        if (inputMoldura) inputMoldura.value = nome;
+
+        document.querySelectorAll('.moldura-card').forEach(card => card.classList.remove('equipada'));
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add('equipada');
+        }
+
+        const frame = document.getElementById('previewMolduraFrame');
+        if (frame) {
+            frame.style.background = cor;
+            frame.style.boxShadow = `0 0 25px ${cor}`;
+        }
+
+        const badge = document.getElementById('badgePatenteEquipada');
+        if (badge) {
+            badge.style.background = bg;
+            badge.style.color = cor;
+            badge.innerHTML = `${icone} Moldura ${nome}`;
+        }
+    }
+
+    document.getElementById('formPerfil')?.addEventListener('submit', function (e) {
+        if (croppedBlob) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('foto', croppedBlob, 'profile_cropped.jpg');
+
+            fetch("{{ url_for('perfil') }}", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    window.location.reload();
+                }
+            }).catch(err => {
+                alert('Erro ao salvar o perfil.');
+            });
+        }
+    });
+</script>
+{% endblock %}

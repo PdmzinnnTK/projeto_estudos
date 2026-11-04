@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Ranking Global de Alunos - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>🏆 Ranking <span>Global de Alunos</span></h1>
+        <p>Acesse a plataforma diariamente, faça perguntas e acumule pontos para subir de patente!</p>
+    </div>
+
+    <!-- GUIA DE PATENTES -->
+    <div class="card-conteudo" style="margin-bottom: 25px; background: #f8fafc;">
+        <h4 style="margin-top: 0; color: #0a2b62;">🎖️ Sistema de Patentes e Molduras</h4>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #f5efe6; color: #b08968;">🥉 Bronze (0+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #f1f2f6; color: #7f8c8d;">🥈 Prata (100+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #fff8e1; color: #d4a373;">🥇 Ouro (200+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #e0f2f1; color: #2ec4b6;">💎 Platina (300+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #e0f7fa; color: #00b4d8;">🔷 Diamante (400+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #f3e5f5; color: #9c27b0;">👑 Mestre (500+ pts)</span>
+            <span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; background: #ffe5e8; color: #e63946;">⚡ Desafiante (600+ pts)</span>
+        </div>
+    </div>
+
+    <div class="leaderboard-card">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Aluno(a)</th>
+                    <th>Patente</th>
+                    <th>Sequência (Streak)</th>
+                    <th>Pontos Acumulados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if ranking %}
+                    {% for aluno in ranking %}
+                        <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
+                            <td class="rank-position">
+                                {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}º{% endif %}
+                            </td>
+                            <td class="student-name">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="patente-avatar-frame" style="background: {{ aluno.patente_info.cor }}; box-shadow: 0 0 8px {{ aluno.patente_info.cor }};">
+                                        {% if aluno.foto and aluno.foto != 'default_avatar.png' %}
+                                            <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" class="patente-avatar-img" style="width: 34px; height: 34px;" alt="Avatar">
+                                        {% else %}
+                                            <div class="patente-avatar-img" style="width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; font-size:15px;">👤</div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <strong>{{ aluno.nome }}</strong>
+                                        {% if usuario and usuario.id_aluno == aluno.id_aluno %}
+                                            <span class="tag-voce">Você</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="padding: 5px 12px; border-radius: 16px; font-size: 13px; font-weight: 800; background: {{ aluno.patente_info.bg }}; color: {{ aluno.patente_info.cor }};">
+                                    {{ aluno.patente_info.icone }} {{ aluno.patente_info.nome }}
+                                </span>
+                            </td>
+                            <td>🔥 {{ aluno.sequencia_dias or 1 }} dias consecutivos</td>
+                            <td class="points-cell">⭐ {{ aluno.pontos or 0 }} pts</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding:30px; color:#7186a1;">
+                            Nenhum aluno pontuou ainda. Seja o primeiro a acessar!
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

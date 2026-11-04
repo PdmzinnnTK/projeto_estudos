@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pro Estudos - Educação Gratuita e Acessível{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .patente-avatar-frame {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            padding: 3px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .patente-avatar-frame:hover {
+            transform: scale(1.08);
+        }
+        .patente-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            background: #ffffff;
+        }
+        .patente-avatar-frame-lg {
+            padding: 5px;
+        }
+        .patente-avatar-img-lg {
+            width: 120px;
+            height: 120px;
+        }
+
+        .user-menu-container {
+            position: relative;
+            display: inline-block;
+        }
+        .user-dropdown-btn {
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 24px;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+        .user-dropdown-btn:hover {
+            background: rgba(10, 43, 98, 0.06);
+        }
+        .user-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 10px;
+            background: #ffffff;
+            min-width: 200px;
+            box-shadow: 0 12px 30px rgba(10, 43, 98, 0.18);
+            border-radius: 14px;
+            overflow: hidden;
+            z-index: 10000;
+            border: 1px solid #e0eaf2;
+        }
+        .user-dropdown-menu.show {
+            display: block;
+        }
+        .user-dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            color: #0a2b62;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        .user-dropdown-menu a:hover {
+            background: #f2f8fc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 43, 98, 0.65);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 440px;
+            position: relative;
+            box-shadow: 0 18px 50px rgba(19, 64, 101, 0.25);
+            color: #0a2b62;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 18px;
+            font-size: 24px;
+            border: none;
+            background: none;
+            color: #7186a1;
+            cursor: pointer;
+        }
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0eaf2;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #59708e;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #00a875;
+            border-bottom: 3px solid #00a875;
+        }
+        .form-step {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-step.active {
+            display: flex;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #183765;
+        }
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #ccd9e7;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #00a875;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #183765;
+        }
+
+        .modal-custom {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 43, 98, 0.65);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-conteudo {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            color: #0a2b62;
+            box-shadow: 0 18px 50px rgba(19, 64, 101, 0.2);
+        }
+        .fechar-modal {
+            position: absolute;
+            top: 15px; right: 15px;
+            font-size: 22px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #7186a1;
+        }
+        .modal-conteudo input, .modal-conteudo select, .modal-conteudo textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 5px;
+            margin-bottom: 12px;
+            border: 1px solid #ccd9e7;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .btn-excluir-msg {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-excluir-msg:hover {
+            text-decoration: underline;
+        }
+        .btn-interativo {
+            background: linear-gradient(100deg, #08b96e, #009968);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            border-radius: 30px;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(0, 168, 112, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-size: 14px;
+        }
+        .btn-interativo:hover {
+            transform: scale(1.05);
+        }
+        .btn-interativo.azul { 
+            background: linear-gradient(100deg, #0a2b62, #183765);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR DE NAVEGAÇÃO -->
+    <header class="topbar">
+        <a href="{{ url_for('index') }}" class="logo">
+            🎓 Pro<span>Estudos</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('conteudos') }}">Conteúdos Disponíveis</a>
+            <a href="{{ url_for('ranking') }}">🏆 Ranking</a>
+            
+            {% if not usuario or usuario.perfil in ['professor', 'admin'] %}
+                <a href="{{ url_for('professores') }}">Para Professores</a>
+            {% endif %}
+
+            {% if usuario %}
+                <a href="{{ url_for('conquistas') }}">🏅 Conquistas</a>
+                <a href="{{ url_for('diagnostico') }}">📊 Diagnóstico</a>
+                <a href="{{ url_for('mensagens') }}">Central de Mensagens</a>
+                {% if usuario.perfil == 'admin' %}
+                    <a href="{{ url_for('listar_usuarios') }}" style="color: #00a875; font-weight: 800;">👥 Usuários</a>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="nav-actions">
+            {% if usuario %}
+                <div class="user-badge">
+                    {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                        <span style="padding: 3px 9px; border-radius: 12px; font-size: 12px; font-weight: 800; background: {{ usuario.aluno.moldura_ativa_info.bg }}; color: {{ usuario.aluno.moldura_ativa_info.cor }};" title="Moldura Equipada">
+                            {{ usuario.aluno.moldura_ativa_info.icone }} {{ usuario.aluno.moldura_ativa_info.nome }}
+                        </span>
+                        <span class="badge-streak" title="Sequência de Acessos Diários">🔥 {{ usuario.aluno.sequencia_dias or 1 }}d</span>
+                        <span class="badge-points" title="Pontuação Geral">⭐ {{ usuario.aluno.pontos or 0 }} pts</span>
+                    {% endif %}
+
+                    <!-- BOTÃO DROPDOWN DE PERFIL -->
+                    <div class="user-menu-container">
+                        <button type="button" class="user-dropdown-btn" onclick="toggleUserDropdown(event)">
+                            {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                                <div class="patente-avatar-frame" style="background: {{ usuario.aluno.moldura_ativa_info.cor }}; box-shadow: 0 0 10px {{ usuario.aluno.moldura_ativa_info.cor }};">
+                                    {% if usuario.aluno.foto and usuario.aluno.foto != 'default_avatar.png' %}
+                                        <img src="{{ url_for('static', filename='uploads/' + usuario.aluno.foto) }}" class="patente-avatar-img" alt="Avatar">
+                                    {% else %}
+                                        <div class="patente-avatar-img" style="display:flex; align-items:center; justify-content:center; font-size:18px;">👤</div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div style="width:36px; height:36px; border-radius:50%; background:#00a875; color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; overflow:hidden;">
+                                    {% if usuario.professor and usuario.professor.foto and usuario.professor.foto != 'default_avatar.png' %}
+                                        <img src="{{ url_for('static', filename='uploads/' + usuario.professor.foto) }}" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
+                                    {% else %}
+                                        👤
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            <span style="font-weight:700; color:#0a2b62;">
+                                {% if usuario.aluno %}{{ usuario.aluno.nome }}{% elif usuario.professor %}{{ usuario.professor.nome }}{% else %}{{ usuario.email.split('@')[0] }}{% endif %}
+                                <small style="font-size:10px; margin-left:2px;">▼</small>
+                            </span>
+                        </button>
+
+                        <div id="userDropdownMenu" class="user-dropdown-menu">
+                            <a href="{{ url_for('perfil') }}">⚙️ Personalizar Perfil</a>
+                            <hr style="margin: 0; border: 0; border-top: 1px solid #e0eaf2;">
+                            <a href="{{ url_for('logout') }}" style="color: #dc3545;">🚪 Sair</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAuthModal('login')">Acessar Plataforma</button>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- MODAIS GLOBAIS DE MENSAGENS E CRIAÇÃO DE MATERIAL -->
+    {% if usuario %}
+        <!-- MODAL DE CENTRAL DE MENSAGENS -->
+        <div id="modalMensagens" class="modal-custom">
+            <div class="modal-conteudo">
+                <button type="button" class="fechar-modal" onclick="fecharModal('modalMensagens')">&times;</button>
+                
+                {% if usuario.perfil == 'aluno' %}
+                    <h3 style="margin-bottom:12px;">Enviar Dúvida ou Sugestão</h3>
+                    <form id="formMensagem" onsubmit="enviarMensagem(event)">
+                        <label>Tipo de mensagem:</label>
+                        <select id="msg_tipo">
+                            <option value="duvida">Dúvida</option>
+                            <option value="sugestao">Sugestão</option>
+                        </select>
+
+                        <label>Para qual Professor?</label>
+                        <select id="msg_prof">
+                            <option value="">Todos os Professores (Geral)</option>
+                            {% for prof in professores %}
+                                <option value="{{ prof.id_professor }}">{{ prof.nome }} ({{ prof.materia_especialidade or 'Geral' }})</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Assunto:</label>
+                        <input type="text" id="msg_assunto" placeholder="Ex: Dúvida sobre Equações" required>
+
+                        <label>Mensagem:</label>
+                        <textarea id="msg_conteudo" rows="3" placeholder="Escreva aqui detalhadamente..." required></textarea>
+
+                        <button type="submit" class="btn-interativo" style="width:100%;">Enviar Mensagem</button>
+                    </form>
+
+                    <hr style="margin: 20px 0; border:0; border-top:1px solid #e0eaf2;">
+                    <h4>Minhas Mensagens Enviadas</h4>
+                    {% if not mensagens %}
+                        <p style="color:#7186a1; font-size:14px; margin-top:8px;">Você ainda não enviou nenhuma mensagem.</p>
+                    {% endif %}
+                    {% for m in mensagens %}
+                        <div style="background:#f2f8fc; padding:12px; margin-top:10px; border-radius:8px; border-left: 4px solid #00a875; position:relative;">
+                            <button type="button" class="btn-excluir-msg" onclick="excluirMensagem({{ m.id_mensagem }})">🗑️ Excluir</button>
+                            <strong>[{{ m.tipo|upper }}] {{ m.assunto }}</strong>
+                            <p style="margin:6px 0; font-size:14px; color:#315174;">{{ m.conteudo }}</p>
+                            {% if m.resposta %}
+                                <p style="color:#00a875; margin:4px 0 0 0; font-size:13px;"><strong>Resposta do Professor:</strong> {{ m.resposta }}</p>
+                            {% else %}
+                                <small style="color:#fd7e14;">Aguardando resposta do professor...</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                {% elif usuario.perfil in ['professor', 'admin'] %}
+                    <h3 style="margin-bottom:12px;">Caixa de Mensagens Recebidas {% if usuario.perfil == 'admin' %}(Admin){% endif %}</h3>
+                    {% if not mensagens %}
+                        <p style="color:#7186a1;">Nenhuma mensagem cadastrada no momento.</p>
+                    {% endif %}
+                    {% for m in mensagens %}
+                        <div style="background:#f2f8fc; padding:12px; margin-bottom:12px; border-radius:8px; border-left: 4px solid #00a875; position:relative;">
+                            <button type="button" class="btn-excluir-msg" onclick="excluirMensagem({{ m.id_mensagem }})">🗑️ Excluir</button>
+                            <small style="color:#7186a1;"><strong>Mensagem de Aluno</strong> | {{ m.tipo|upper }}</small>
+                            <h5 style="margin: 4px 0;">{{ m.assunto }}</h5>
+                            <p style="margin: 6px 0; font-size:14px; color:#315174;">{{ m.conteudo }}</p>
+                            {% if m.resposta %}
+                                <p style="color:#00a875; margin-top:8px; font-size:13px;"><strong>Resposta Atual:</strong> {{ m.resposta }}</p>
+                            {% else %}
+                                <form onsubmit="responderMensagem(event, {{ m.id_mensagem }})" style="margin-top:10px;">
+                                    <input type="text" placeholder="Escreva sua resposta..." id="resp_{{ m.id_mensagem }}" required style="width:68%; display:inline-block; margin-bottom:0;">
+                                    <button type="submit" class="btn-interativo" style="padding:8px 12px; font-size:12px; display:inline-block;">Responder</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- MODAL DE ADICIONAR NOVO MATERIAL -->
+        {% if usuario.perfil in ['professor', 'admin'] %}
+            <div id="modalNovoMaterial" class="modal-custom">
+                <div class="modal-conteudo">
+                    <button type="button" class="fechar-modal" onclick="fecharModal('modalNovoMaterial')">&times;</button>
+                    <h3 style="margin-bottom:12px;">Publicar Novo Material</h3>
+                    <form onsubmit="cadastrarMaterial(event)">
+                        <label>Título do Conteúdo:</label>
+                        <input type="text" id="mat_titulo" placeholder="Ex: Apostila de Álgebra Linear" required>
+
+                        <label>Matéria:</label>
+                        <select id="mat_materia">
+                            {% for chave, nome in materias.items() %}
+                                <option value="{{ nome }}">{{ nome }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>Tema / Tópico:</label>
+                        <input type="text" id="mat_tema" placeholder="Ex: Equações de 2º Grau" required>
+
+                        <label>Tipo de Material:</label>
+                        <select id="mat_tipo">
+                            <option value="PDF">PDF / Documento</option>
+                            <option value="Video">Vídeo / Aula Online</option>
+                            <option value="Texto">Texto / Artigo</option>
+                        </select>
+
+                        <label>Descrição Breve:</label>
+                        <textarea id="mat_desc" rows="2" placeholder="Resumo sobre o material..."></textarea>
+
+                        <label>Link Externo (Opcional):</label>
+                        <input type="url" id="mat_link" placeholder="https://youtube.com/...">
+
+                        <button type="submit" class="btn-interativo" style="width:100%; margin-top:10px;">Publicar Conteúdo</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- MODAL DE AUTENTICAÇÃO -->
+    <div class="modal" id="authModal" style="display: none;">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeAuthModal()">&times;</button>
+            
+            <div class="modal-tabs">
+                <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
+                <button type="button" class="tab-btn" id="tabCadastro" onclick="switchTab('cadastro')">Criar Conta</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <form id="loginForm" class="form-step active" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" required placeholder="Sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Entrar</button>
+            </form>
+
+            <!-- Formulário de Cadastro -->
+            <form id="cadastroForm" class="form-step" onsubmit="handleCadastroSubmit(event)">
+                <input type="hidden" id="cadPerfil" value="aluno">
+                
+                <div class="form-group">
+                    <label for="cadNome">Nome Completo</label>
+                    <input type="text" id="cadNome" required placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="cadEmail">E-mail</label>
+                    <input type="email" id="cadEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="cadSenha">Senha</label>
+                    <input type="password" id="cadSenha" minlength="6" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Cadastrar e Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer style="text-align: center; padding: 25px 20px; color: #59708e; font-size: 13px;">
+        <p>&copy; 2026 Pro Estudos. Plataforma Educacional Aberta e Gratuita.</p>
+    </footer>
+
+    <!-- SCRIPTS GLOBAIS -->
+    <script>
+        function toggleUserDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            if (menu) menu.classList.toggle('show');
+        }
+
+        function openAuthModal(aba = 'login', perfil = 'aluno') {
+            const modal = document.getElementById('authModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            
+            const cadPerfilInput = document.getElementById('cadPerfil');
+            if (cadPerfilInput && perfil) {
+                cadPerfilInput.value = perfil;
+            }
+            switchTab(aba);
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function switchTab(aba) {
+            const isLogin = aba === 'login';
+            const tabLogin = document.getElementById('tabLogin');
+            const tabCadastro = document.getElementById('tabCadastro');
+            const loginForm = document.getElementById('loginForm');
+            const cadastroForm = document.getElementById('cadastroForm');
+
+            if (tabLogin) tabLogin.classList.toggle('active', isLogin);
+            if (tabCadastro) tabCadastro.classList.toggle('active', !isLogin);
+            if (loginForm) {
+                loginForm.classList.toggle('active', isLogin);
+                loginForm.style.display = isLogin ? 'flex' : 'none';
+            }
+            if (cadastroForm) {
+                cadastroForm.classList.toggle('active', !isLogin);
+                cadastroForm.style.display = !isLogin ? 'flex' : 'none';
+            }
+        }
+
+        function abrirModal(id) { 
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'flex'; 
+        }
+
+        function fecharModal(id) { 
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none'; 
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar login.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
+            }
+        }
+
+        async function handleCadastroSubmit(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cadNome').value;
+            const email = document.getElementById('cadEmail').value;
+            const senha = document.getElementById('cadSenha').value;
+            const perfil = document.getElementById('cadPerfil').value;
+
+            try {
+                const res = await fetch('/cadastrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha, perfil })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar cadastro.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
+            }
+        }
+
+        async function enviarMensagem(e) {
+            e.preventDefault();
+            const res = await fetch('/enviar_mensagem', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    tipo: document.getElementById('msg_tipo').value,
+                    id_professor: document.getElementById('msg_prof').value,
+                    assunto: document.getElementById('msg_assunto').value,
+                    conteudo: document.getElementById('msg_conteudo').value
+                })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(res.ok) location.reload();
+        }
+
+        async function responderMensagem(e, id) {
+            e.preventDefault();
+            const resposta = document.getElementById('resp_' + id).value;
+            const res = await fetch('/professor/responder_mensagem/' + id, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ resposta })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(res.ok) location.reload();
+        }
+
+        async function excluirMensagem(id) {
+            if (!confirm('Deseja realmente excluir esta dúvida/mensagem?')) return;
+
+            const res = await fetch('/mensagem/excluir/' + id, { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) location.reload();
+        }
+
+        async function cadastrarMaterial(e) {
+            e.preventDefault();
+            const res = await fetch('/professor/conteudo/novo', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    titulo: document.getElementById('mat_titulo').value,
+                    materia: document.getElementById('mat_materia').value,
+                    tema: document.getElementById('mat_tema').value,
+                    tipo_conteudo: document.getElementById('mat_tipo').value,
+                    descricao: document.getElementById('mat_desc').value,
+                    link: document.getElementById('mat_link').value
+                })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(res.ok) location.reload();
+        }
+
+        window.onclick = function(e) {
+            const authModal = document.getElementById('authModal');
+            if (e.target === authModal) closeAuthModal();
+
+            const userMenu = document.getElementById('userDropdownMenu');
+            if (userMenu && !e.target.closest('.user-menu-container')) {
+                userMenu.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

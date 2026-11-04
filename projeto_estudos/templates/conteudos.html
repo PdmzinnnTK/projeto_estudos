@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+
+{% block title %}Conteúdos e Lições - Pro Estudos{% endblock %}
+
+{% block content %}
+<style>
+    .btn-filtro-materia {
+        background: #ffffff;
+        border: 2px solid #ccd9e7;
+        color: #0a2b62;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+    .btn-filtro-materia:hover {
+        border-color: #00a875;
+        color: #00a875;
+    }
+    .btn-filtro-materia.active {
+        background: #00a875;
+        border-color: #00a875;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(0, 168, 112, 0.25);
+    }
+    .input-busca-custom {
+        flex: 1;
+        padding: 10px 16px;
+        border: 2px solid #ccd9e7;
+        border-radius: 25px;
+        font-size: 14px;
+        outline: none;
+        font-family: inherit;
+        transition: border-color 0.2s;
+    }
+    .input-busca-custom:focus {
+        border-color: #00a875;
+    }
+    .item-pergunta-existente {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>📚 Conteúdos & <span>Lições Disponíveis</span></h1>
+        <p>Explore os materiais disponíveis, pesquise por termo ou filtre por matéria para testar seus conhecimentos!</p>
+    </div>
+
+    <!-- PAINEL DE PESQUISA E FILTROS -->
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; background: #ffffff; padding: 20px; border-radius: 14px; border: 1px solid #e0eaf2;">
+        
+        <!-- CAMPO DE PESQUISA TEXTUAL -->
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="inputPesquisa" class="input-busca-custom" placeholder="🔍 Digite para pesquisar por título, tema, palavra-chave ou resumo..." onkeyup="aplicarFiltros()">
+            <button type="button" class="btn-interativo" style="padding: 10px 20px; border-radius: 25px;" onclick="aplicarFiltros()">Pesquisar</button>
+        </div>
+
+        <!-- BARRA DE BOTÕES DE FILTRO POR MATÉRIA -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 14px; font-weight: 800; color: #0a2b62; margin-right: 5px;">Matéria:</span>
+            <button type="button" class="btn-filtro-materia active" onclick="selecionarMateria('todas', this)">✨ Todas</button>
+            {% for chave, nome in materias.items() %}
+                <button type="button" class="btn-filtro-materia" onclick="selecionarMateria('{{ nome }}', this)">{{ nome }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if usuario and usuario.perfil in ['professor', 'admin'] %}
+        <div style="margin-bottom: 25px; text-align: right;">
+            <button type="button" class="btn-interativo" onclick="abrirModal('modalNovoMaterial')">
+                ➕ Publicar Novo Material
+            </button>
+        </div>
+    {% endif %}
+
+    <!-- GRID DE CONTEÚDOS -->
+    <div class="materias-grid" id="gridConteudos">
+        {% if conteudos %}
+            {% for c in conteudos %}
+                <div class="card-conteudo card-conteudo-item" data-materia="{{ c.materia }}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <span class="badge-tipo {{ c.tipo_conteudo|lower }}">{{ c.tipo_conteudo }}</span>
+                        <small style="color: #59708e; font-weight: 700;">{{ c.materia }}</small>
+                    </div>
+
+                    <h3 style="margin: 0 0 8px 0; color: #0a2b62;">{{ c.titulo }}</h3>
+                    <p style="font-size: 13px; color: #59708e; margin-bottom: 10px;"><strong>Tópico:</strong> {{ c.tema }}</p>
+                    <p style="font-size: 14px; color: #315174; line-height: 1.5; margin-bottom: 16px;">{{ c.descricao }}</p>
+
+                    <!-- AÇÕES E LIÇÕES DO CONTEÚDO ESPECÍFICO -->
+                    <div style="border-top: 1px solid #e0eaf2; padding-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+                        
+                        <!-- Abrir Conteúdo -->
+                        <a href="{{ url_for('acessar_conteudo', id_conteudo=c.id_conteudo) }}" target="_blank" class="btn-interativo azul" style="text-align: center; text-decoration: none; padding: 10px; font-size: 13px;">
+                            📖 Abrir Material
+                        </a>
+
+                        <!-- Ver e Responder Lições (DISPONÍVEL APENAS PARA ALUNOS OU VISITANTES) -->
+                        {% if not usuario or usuario.perfil == 'aluno' %}
+                            {% if c.perguntas|length > 0 %}
+                                <a href="{{ url_for('fazer_licao', id_conteudo=c.id_conteudo) }}" class="btn-interativo" style="text-align: center; text-decoration: none; padding: 10px; font-size: 13px;">
+                                    📝 Responder Lição ({{ c.perguntas|length }} questõe{{ 's' if c.perguntas|length > 1 else '' }} - +{{ c.perguntas|sum(attribute='pontos') }} pts)
+                                </a>
+                            {% else %}
+                                <span style="font-size: 12px; color: #94a3b8; text-align: center; padding: 6px;">Nenhuma lição anexada a este conteúdo.</span>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Opção do Professor / Admin para Criar e Editar Perguntas -->
+                        {% if usuario and usuario.perfil in ['professor', 'admin'] %}
+                            <button type="button" class="btn-interativo" style="background: #6f42c1; box-shadow: none; padding: 8px; font-size: 12px;" onclick="abrirModalGerenciarLicao({{ c.id_conteudo }}, '{{ c.titulo|escape }}')">
+                                ⚙️ Gerenciar / Editar Lições ({{ c.perguntas|length }})
+                            </button>
+                        {% endif %}
+
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-icon">📚</div>
+                <h3>Nenhum conteúdo publicado</h3>
+                <p>Assim que os professores publicarem materiais, eles aparecerão aqui.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ESTADO VAZIO CASO O FILTRO NÃO ENCONTRE NADA -->
+    <div id="emptyStateFiltro" class="empty-state" style="display: none; grid-column: 1 / -1;">
+        <div class="empty-icon">🔍</div>
+        <h3>Nenhum resultado encontrado</h3>
+        <p>Tente alterar o termo pesquisado ou a matéria selecionada.</p>
+    </div>
+</div>
+
+<!-- MODAL PARA PROFESSOR GERENCIAR E EDITAR LIÇÕES DO CONTEÚDO -->
+<div id="modalGerenciarLicao" class="modal-custom">
+    <div class="modal-conteudo" style="max-width: 650px;">
+        <button type="button" class="fechar-modal" onclick="fecharModal('modalGerenciarLicao')">&times;</button>
+        <h3 style="margin-bottom: 4px;" id="tituloModalGerenciar">Gerenciar Lição</h3>
+        <p style="font-size: 13px; color: #59708e; margin-bottom: 15px;">Adicione novas perguntas ou edite as perguntas já cadastradas.</p>
+
+        <!-- LISTA DE PERGUNTAS CADASTRADAS PARA EDIÇÃO -->
+        <div id="listaPerguntasCadastradas" style="margin-bottom: 20px; max-height: 220px; overflow-y: auto; padding-right: 5px;">
+            <p style="font-size: 13px; color: #7186a1;">Carregando perguntas...</p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+
+        <!-- FORMULÁRIO DE ADIÇÃO / EDIÇÃO -->
+        <h4 id="tituloFormPergunta" style="margin: 0 0 10px 0; color: #0a2b62;">➕ Criar Nova Pergunta</h4>
+
+        <form id="formSalvarPergunta" onsubmit="salvarOuEditarPergunta(event)">
+            <input type="hidden" id="gerenciar_id_conteudo">
+            <input type="hidden" id="gerenciar_id_pergunta" value="">
+
+            <label>Enunciado da Pergunta:</label>
+            <textarea id="perg_enunciado" rows="2" placeholder="Digite o enunciado da questão..." required></textarea>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label>Opção A:</label>
+                    <input type="text" id="perg_a" placeholder="Alternativa A" required>
+                </div>
+                <div>
+                    <label>Opção B:</label>
+                    <input type="text" id="perg_b" placeholder="Alternativa B" required>
+                </div>
+                <div>
+                    <label>Opção C:</label>
+                    <input type="text" id="perg_c" placeholder="Alternativa C" required>
+                </div>
+                <div>
+                    <label>Opção D:</label>
+                    <input type="text" id="perg_d" placeholder="Alternativa D" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px;">
+                <div>
+                    <label>Resposta Correta:</label>
+                    <select id="perg_correta">
+                        <option value="A">Opção A</option>
+                        <option value="B">Opção B</option>
+                        <option value="C">Opção C</option>
+                        <option value="D">Opção D</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Valor em Pontos:</label>
+                    <input type="number" id="perg_pontos" value="10" min="5" max="100" required>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button type="submit" id="btnSubmitFormPergunta" class="btn-interativo" style="flex: 1;">
+                    💾 Salvar Pergunta
+                </button>
+                <button type="button" id="btnCancelarEdicao" class="btn-interativo" style="background: #e2e8f0; color: #59708e; display: none;" onclick="limparFormularioPergunta()">
+                    Cancelar Edição
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let materiaSelecionada = 'todas';
+    let perguntasCache = [];
+
+    function selecionarMateria(nomeMateria, botaoClicado) {
+        document.querySelectorAll('.btn-filtro-materia').forEach(btn => btn.classList.remove('active'));
+        botaoClicado.classList.add('active');
+        materiaSelecionada = nomeMateria;
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+        const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.card-conteudo-item');
+        let visiveis = 0;
+
+        cards.forEach(card => {
+            const materiaCard = card.getAttribute('data-materia');
+            const textoConteudo = card.innerText.toLowerCase();
+
+            const atendeMateria = (materiaSelecionada === 'todas' || materiaCard === materiaSelecionada);
+            const atendeBusca = (termo === '' || textoConteudo.includes(termo));
+
+            if (atendeMateria && atendeBusca) {
+                card.style.display = 'block';
+                visiveis++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const emptyState = document.getElementById('emptyStateFiltro');
+        if (emptyState) {
+            emptyState.style.display = visiveis === 0 ? 'block' : 'none';
+        }
+    }
+
+    async function abrirModalGerenciarLicao(idConteudo, tituloConteudo) {
+        document.getElementById('gerenciar_id_conteudo').value = idConteudo;
+        document.getElementById('tituloModalGerenciar').innerText = 'Gerenciar Lições: ' + tituloConteudo;
+        limparFormularioPergunta();
+        abrirModal('modalGerenciarLicao');
+        await carregarPerguntasConteudo(idConteudo);
+    }
+
+    async function carregarPerguntasConteudo(idConteudo) {
+        const container = document.getElementById('listaPerguntasCadastradas');
+        container.innerHTML = '<p style="font-size: 13px; color: #7186a1;">Buscando perguntas...</p>';
+
+        try {
+            const res = await fetch(`/api/conteudo/${idConteudo}/perguntas`);
+            perguntasCache = await res.json();
+
+            if (perguntasCache.length === 0) {
+                container.innerHTML = '<p style="font-size: 13px; color: #7186a1;">Nenhuma pergunta cadastrada para este conteúdo ainda.</p>';
+                return;
+            }
+
+            let html = '';
+            perguntasCache.forEach((p, idx) => {
+                html += `
+                    <div class="item-pergunta-existente">
+                        <div style="flex: 1;">
+                            <strong style="font-size: 13px; color: #0a2b62;">Q${idx + 1}: ${p.enunciado}</strong><br>
+                            <small style="color: #59708e;">Correta: <strong>${p.resposta_correta}</strong> | ${p.pontos} pts</small>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-interativo" style="padding: 6px 12px; font-size: 12px; background: #00a875;" onclick="preencherFormularioParaEdicao(${p.id_pergunta})">✏️ Editar</button>
+                            <button type="button" class="btn-interativo" style="padding: 6px 12px; font-size: 12px; background: #dc3545;" onclick="excluirPerguntaLicao(${p.id_pergunta})">🗑️ Excluir</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch (err) {
+            container.innerHTML = '<p style="font-size: 13px; color: #dc3545;">Erro ao carregar perguntas.</p>';
+        }
+    }
+
+    function preencherFormularioParaEdicao(idPergunta) {
+        const p = perguntasCache.find(item => item.id_pergunta === idPergunta);
+        if (!p) return;
+
+        document.getElementById('gerenciar_id_pergunta').value = p.id_pergunta;
+        document.getElementById('perg_enunciado').value = p.enunciado;
+        document.getElementById('perg_a').value = p.opcao_a;
+        document.getElementById('perg_b').value = p.opcao_b;
+        document.getElementById('perg_c').value = p.opcao_c;
+        document.getElementById('perg_d').value = p.opcao_d;
+        document.getElementById('perg_correta').value = p.resposta_correta;
+        document.getElementById('perg_pontos').value = p.pontos;
+
+        document.getElementById('tituloFormPergunta').innerText = '✏️ Editar Pergunta';
+        document.getElementById('btnSubmitFormPergunta').innerText = '🔄 Atualizar Pergunta';
+        document.getElementById('btnCancelarEdicao').style.display = 'inline-block';
+    }
+
+    function limparFormularioPergunta() {
+        document.getElementById('gerenciar_id_pergunta').value = '';
+        document.getElementById('perg_enunciado').value = '';
+        document.getElementById('perg_a').value = '';
+        document.getElementById('perg_b').value = '';
+        document.getElementById('perg_c').value = '';
+        document.getElementById('perg_d').value = '';
+        document.getElementById('perg_correta').value = 'A';
+        document.getElementById('perg_pontos').value = '10';
+
+        document.getElementById('tituloFormPergunta').innerText = '➕ Criar Nova Pergunta';
+        document.getElementById('btnSubmitFormPergunta').innerText = '💾 Salvar Pergunta';
+        document.getElementById('btnCancelarEdicao').style.display = 'none';
+    }
+
+    async function salvarOuEditarPergunta(e) {
+        e.preventDefault();
+        const idConteudo = document.getElementById('gerenciar_id_conteudo').value;
+        const idPergunta = document.getElementById('gerenciar_id_pergunta').value;
+
+        const payload = {
+            enunciado: document.getElementById('perg_enunciado').value,
+            opcao_a: document.getElementById('perg_a').value,
+            opcao_b: document.getElementById('perg_b').value,
+            opcao_c: document.getElementById('perg_c').value,
+            opcao_d: document.getElementById('perg_d').value,
+            resposta_correta: document.getElementById('perg_correta').value,
+            pontos: document.getElementById('perg_pontos').value
+        };
+
+        const url = idPergunta 
+            ? `/professor/pergunta/editar/${idPergunta}` 
+            : `/professor/conteudo/${idConteudo}/pergunta/nova`;
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) {
+                limparFormularioPergunta();
+                await carregarPerguntasConteudo(idConteudo);
+            }
+        } catch (err) {
+            alert('Erro ao salvar a pergunta.');
+        }
+    }
+
+    async function excluirPerguntaLicao(idPergunta) {
+        if (!confirm('Deseja realmente excluir esta pergunta da lição?')) return;
+
+        const idConteudo = document.getElementById('gerenciar_id_conteudo').value;
+        try {
+            const res = await fetch(`/professor/pergunta/excluir/${idPergunta}`, { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) {
+                await carregarPerguntasConteudo(idConteudo);
+            }
+        } catch (err) {
+            alert('Erro ao excluir a pergunta.');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Lição: {{ conteudo.titulo }} - Pro Estudos{% endblock %}
+
+{% block content %}
+<style>
+    .licao-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(10, 43, 98, 0.08);
+        border: 1px solid #e0eaf2;
+        margin-top: 20px;
+    }
+    .pergunta-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .opcao-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #ffffff;
+        border: 1px solid #ccd9e7;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-top: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .opcao-item:hover {
+        border-color: #00a875;
+        background: #f0fdf4;
+    }
+    .opcao-item input[type="radio"] {
+        accent-color: #00a875;
+        width: 18px;
+        height: 18px;
+    }
+
+    /* ESTILOS DA TELA DE RESULTADO DO DESEMPENHO */
+    .resultado-banner {
+        text-align: center;
+        padding: 25px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        color: white;
+    }
+    .resultado-banner.sucesso {
+        background: linear-gradient(135deg, #00a875, #008f63);
+    }
+    .resultado-banner.atencao {
+        background: linear-gradient(135deg, #0a2b62, #183765);
+    }
+
+    .card-feedback {
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+        border-left: 6px solid #cbd5e1;
+    }
+    .card-feedback.correto {
+        background: #f0fdf4;
+        border-left-color: #00a875;
+    }
+    .card-feedback.incorreto {
+        background: #fef2f2;
+        border-left-color: #dc3545;
+    }
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+    .badge-status.acerto { background: #dcfce7; color: #15803d; }
+    .badge-status.erro { background: #fee2e2; color: #b91c1c; }
+</style>
+
+<div class="materia-container">
+    <a href="{{ url_for('conteudos') }}" class="btn-voltar">
+        ← Voltar aos Conteúdos
+    </a>
+
+    <div class="materia-header">
+        <h1>📝 Lição de <span>{{ conteudo.titulo }}</span></h1>
+        <p><strong>Matéria:</strong> {{ conteudo.materia }} | <strong>Tópico:</strong> {{ conteudo.tema }}</p>
+    </div>
+
+    {% if resultado %}
+        <!-- TELA DE RESULTADO / RESUMO DOS ACERTOS E ERROS -->
+        <div class="resultado-banner {% if resultado.aproveitamento_pct >= 60 %}sucesso{% else %}atencao{% endif %}">
+            <h2 style="margin: 0 0 8px 0;">🎉 Lição Concluída!</h2>
+            <p style="font-size: 16px; margin: 0 0 14px 0;">Você acumulou <strong>+{{ resultado.pontos_ganhos }} pontos</strong> no seu perfil!</p>
+
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px;">
+                    ✅ Acertos: <strong>{{ resultado.total_acertos }} / {{ resultado.total_perguntas }}</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px;">
+                    ❌ Erros: <strong>{{ resultado.total_erros }}</strong>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px;">
+                    📊 Desempenho: <strong>{{ resultado.aproveitamento_pct }}%</strong>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color: #0a2b62; margin-bottom: 15px;">🔍 Correção Detalhada das Questões:</h3>
+
+        {% for item in resultado.detalhes %}
+            <div class="card-feedback {% if item.acertou %}correto{% else %}incorreto{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong style="color: #0a2b62;">Questão {{ item.numero }}: {{ item.enunciado }}</strong>
+                    {% if item.acertou %}
+                        <span class="badge-status acerto">✅ Você Acertou! (+{{ item.pontos }} pts)</span>
+                    {% else %}
+                        <span class="badge-status erro">❌ Você Errou</span>
+                    {% endif %}
+                </div>
+
+                <div style="font-size: 14px; margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+                    <div style="color: {% if item.resposta_usuario == 'A' %}{% if item.acertou %}#15803d{% else %}#b91c1c{% endif %}{% endif %};">
+                        <strong>A)</strong> {{ item.opcao_a }} {% if item.resposta_usuario == 'A' %}(Sua Escolha){% endif %} {% if item.resposta_correta == 'A' %}⭐ [Correta]{% endif %}
+                    </div>
+                    <div style="color: {% if item.resposta_usuario == 'B' %}{% if item.acertou %}#15803d{% else %}#b91c1c{% endif %}{% endif %};">
+                        <strong>B)</strong> {{ item.opcao_b }} {% if item.resposta_usuario == 'B' %}(Sua Escolha){% endif %} {% if item.resposta_correta == 'B' %}⭐ [Correta]{% endif %}
+                    </div>
+                    <div style="color: {% if item.resposta_usuario == 'C' %}{% if item.acertou %}#15803d{% else %}#b91c1c{% endif %}{% endif %};">
+                        <strong>C)</strong> {{ item.opcao_c }} {% if item.resposta_usuario == 'C' %}(Sua Escolha){% endif %} {% if item.resposta_correta == 'C' %}⭐ [Correta]{% endif %}
+                    </div>
+                    <div style="color: {% if item.resposta_usuario == 'D' %}{% if item.acertou %}#15803d{% else %}#b91c1c{% endif %}{% endif %};">
+                        <strong>D)</strong> {{ item.opcao_d }} {% if item.resposta_usuario == 'D' %}(Sua Escolha){% endif %} {% if item.resposta_correta == 'D' %}⭐ [Correta]{% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <a href="{{ url_for('fazer_licao', id_conteudo=conteudo.id_conteudo) }}" class="btn-interativo azul" style="text-decoration: none;">
+                🔄 Refazer Lição
+            </a>
+            <a href="{{ url_for('ranking') }}" class="btn-interativo" style="text-decoration: none;">
+                🏆 Ver Meu Ranking
+            </a>
+        </div>
+
+    {% else %}
+        <!-- FORMULÁRIO DE RESOLUÇÃO DA LIÇÃO -->
+        <div class="licao-card">
+            <form action="{{ url_for('submeter_licao', id_conteudo=conteudo.id_conteudo) }}" method="POST">
+                {% for p in perguntas %}
+                    <div class="pergunta-box">
+                        <h4 style="margin: 0 0 12px 0; color: #0a2b62;">
+                            {{ loop.index }}. {{ p.enunciado }}
+                            <small style="color: #00a875; font-size: 12px; font-weight: normal;">(+{{ p.pontos }} pts)</small>
+                        </h4>
+
+                        <label class="opcao-item">
+                            <input type="radio" name="pergunta_{{ p.id_pergunta }}" value="A" required>
+                            <span><strong>A)</strong> {{ p.opcao_a }}</span>
+                        </label>
+
+                        <label class="opcao-item">
+                            <input type="radio" name="pergunta_{{ p.id_pergunta }}" value="B" required>
+                            <span><strong>B)</strong> {{ p.opcao_b }}</span>
+                        </label>
+
+                        <label class="opcao-item">
+                            <input type="radio" name="pergunta_{{ p.id_pergunta }}" value="C" required>
+                            <span><strong>C)</strong> {{ p.opcao_c }}</span>
+                        </label>
+
+                        <label class="opcao-item">
+                            <input type="radio" name="pergunta_{{ p.id_pergunta }}" value="D" required>
+                            <span><strong>D)</strong> {{ p.opcao_d }}</span>
+                        </label>
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn-interativo" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 10px;">
+                    🚀 Enviar Respostas e Calcular Pontos
+                </button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

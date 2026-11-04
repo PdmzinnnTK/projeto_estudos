@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel de Usuários Cadastrados - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>Painel do <span>Administrador</span></h1>
+        <p>Visão geral de todos os usuários cadastrados na plataforma com seus detalhes específicos de perfil.</p>
+    </div>
+
+    <div class="leaderboard-card" style="margin-top: 20px; overflow-x: auto;">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome do Usuário</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Status</th>
+                    <th>Informações do Perfil</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if usuarios_lista %}
+                    {% for u in usuarios_lista %}
+                        <tr>
+                            <td><strong>#{{ u.id_usuario }}</strong></td>
+                            <td>
+                                {% if u.aluno %}
+                                    <strong>{{ u.aluno.nome }}</strong>
+                                {% elif u.professor %}
+                                    <strong>{{ u.professor.nome }}</strong>
+                                {% else %}
+                                    <em>Administrador Geral</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                <span class="badge-tipo {% if u.perfil == 'admin' %}pdf{% elif u.perfil == 'professor' %}video{% endif %}">
+                                    {{ u.perfil|upper }}
+                                </span>
+                            </td>
+                            <td>
+                                <span style="color: #00a875; font-weight: 700;">● {{ u.status }}</span>
+                            </td>
+                            <td style="font-size: 13px;">
+                                {% if u.aluno %}
+                                    ⭐ <strong>Pontos:</strong> {{ u.aluno.pontos or 0 }} | 
+                                    🔥 <strong>Streak:</strong> {{ u.aluno.sequencia_dias or 1 }} dias<br>
+                                    <small style="color: #7186a1;">Diagnóstico: {{ u.aluno.nivel_diagnostico }}</small>
+                                {% elif u.professor %}
+                                    📚 <strong>Especialidade:</strong> {{ u.professor.materia_especialidade or 'Não informada' }}<br>
+                                    <small style="color: #7186a1;">Telefone: {{ u.professor.telefone or 'Não informado' }}</small>
+                                {% else %}
+                                    <span style="color: #7186a1;">Conta de gestão do sistema</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:30px; color:#7186a1;">
+                            Nenhum usuário cadastrado até ao momento.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
