@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Para Professores Voluntários - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <!-- Banner Principal para Professores -->
+    <div class="volunteer-section" style="margin: 0 0 35px 0;">
+        <h2>Seja um Professor Voluntário</h2>
+        <p>Compartilhe seu conhecimento, ajude a democratizar o acesso à educação e faça parte de um impacto social real.</p>
+        
+        {% if usuario %}
+            {% if usuario.perfil in ['professor', 'admin'] %}
+                <button type="button" class="btn btn-primary" onclick="abrirModal('modalNovoMaterial')">Publicar Novo Material</button>
+            {% else %}
+                <button type="button" class="btn btn-primary" onclick="alert('A sua conta atual é de perfil Aluno. Para publicar materiais, crie ou altere para uma conta de Professor.')">Publicação exclusiva para Professores</button>
+            {% endif %}
+        {% else %}
+            <button type="button" class="btn btn-primary" onclick="openAuthModal('cadastro', 'professor')">Cadastre-se como Voluntário</button>
+        {% endif %}
+    </div>
+
+    <!-- Vantagens do Trabalho Voluntário -->
+    <h2 style="font-size: 22px; margin-bottom: 20px; color: #0a2b62; text-align: center;">Por que fazer parte da nossa rede?</h2>
+    
+    <div class="features-grid" style="margin-bottom: 40px;">
+        <div class="feature-item">
+            <div class="feature-icon-box">🌟</div>
+            <h3>Impacto Social</h3>
+            <p>Alcance estudantes de todo o país e transforme a realidade de jovens e adultos em busca de aprendizado.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">📂</div>
+            <h3>Publicação Simples</h3>
+            <p>Compartilhe apostilas em PDF, artigos de apoio e links de videoaulas diretamente na nossa plataforma.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">💬</div>
+            <h3>Canal de Dúvidas</h3>
+            <p>Responda dúvidas de alunos diretamente pela Central de Mensagens unificada.</p>
+        </div>
+        <div class="feature-item">
+            <div class="feature-icon-box">🏆</div>
+            <h3>Reconhecimento</h3>
+            <p>Construa seu portfólio de educador voluntário em uma rede colaborativa aberta.</p>
+        </div>
+    </div>
+
+    <!-- Lista de Professores Cadastrados na Plataforma -->
+    <div class="card-conteudo">
+        <h3 style="margin-bottom: 15px;">👨‍🏫 Professores Integrantes da Rede</h3>
+        {% if professores %}
+            <ul style="list-style: none; padding: 0;">
+                {% for prof in professores %}
+                    <li style="padding: 12px 15px; background: #f4f8fc; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="color: #0a2b62; font-size: 15px;">{{ prof.nome }}</strong>
+                            {% if prof.materia_especialidade %}
+                                <span style="font-size: 13px; color: #59708e;"> — {{ prof.materia_especialidade }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="badge-tipo">Voluntário</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p style="color: #7186a1; font-size: 14px;">Nenhum professor cadastrado até ao momento. Seja o primeiro!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

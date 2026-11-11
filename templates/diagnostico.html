@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnóstico de Estudos - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>📊 Diagnóstico de <span>Acessos por Matéria</span></h1>
+        <p>Acompanhe quais disciplinas possuem maior frequência de estudo e interação.</p>
+    </div>
+
+    {% if usuario.perfil in ['professor', 'admin'] %}
+        <div class="card-conteudo" style="margin-bottom: 25px;">
+            <label for="selectAluno" style="font-weight: 700; color: #0a2b62;">🔍 Selecionar Aluno para Consulta:</label>
+            <select id="selectAluno" onchange="location.href='/diagnostico/' + this.value" style="width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ccd9e7; border-radius: 8px;">
+                {% for a in todos_alunos %}
+                    <option value="{{ a.id_aluno }}" {% if aluno_alvo and aluno_alvo.id_aluno == a.id_aluno %}selected{% endif %}>
+                        {{ a.nome }} ({{ a.pontos or 0 }} pts - 🔥 {{ a.sequencia_dias or 1 }}d)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+
+    {% if aluno_alvo %}
+        <div class="card-conteudo">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <h3 style="margin: 0;">Aluno(a): {{ aluno_alvo.nome }}</h3>
+                    <small style="color: #59708e;">Pontuação: ⭐ {{ aluno_alvo.pontos or 0 }} pts | Sequência: 🔥 {{ aluno_alvo.sequencia_dias or 1 }} dias</small>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" class="tab-btn active" id="btnPizza" onclick="alterarTipoGrafico('pie')">🍕 Gráfico de Pizza</button>
+                    <button type="button" class="tab-btn" id="btnBarra" onclick="alterarTipoGrafico('bar')">📊 Gráfico de Barra</button>
+
+                    {% if usuario.perfil == 'admin' or (usuario.perfil == 'aluno' and usuario.id_aluno == aluno_alvo.id_aluno) %}
+                        <button type="button" onclick="resetarGraficoTotal({{ aluno_alvo.id_aluno }})" style="background: #dc3545; color: white; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.2s;">
+                            🗑️ Resetar Gráfico Todo
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- OPÇÃO DE RESETAR APENAS UMA MATÉRIA DE ESCOLHA -->
+            {% if usuario.perfil == 'admin' or (usuario.perfil == 'aluno' and usuario.id_aluno == aluno_alvo.id_aluno) %}
+                <div style="background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <span style="font-size: 13px; font-weight: 700; color: #0a2b62;">🧹 Resetar Matéria Específica:</span>
+                    <select id="selectMateriaReset" style="padding: 8px 12px; border: 1px solid #ccd9e7; border-radius: 6px; font-size: 13px; outline: none;">
+                        <option value="">Selecione uma matéria...</option>
+                        {% for chave, nome in materias.items() %}
+                            <option value="{{ nome }}">{{ nome }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" onclick="resetarMateriaEspecifica({{ aluno_alvo.id_aluno }})" style="background: #fd7e14; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                        Limpar Matéria
+                    </button>
+                </div>
+            {% endif %}
+
+            <div style="position: relative; height: 380px; width: 100%; max-width: 650px; margin: 0 auto;">
+                <canvas id="graficoEstudos"></canvas>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <h3>Nenhum aluno encontrado</h3>
+            <p>Não existem dados de diagnóstico para exibir no momento.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    const labelsMaterias = {{ labels | tojson }};
+    const valoresMaterias = {{ valores | tojson }};
+
+    const cores = [
+        '#00a875',
+        '#0a2b62',
+        '#fd7e14',
+        '#6f42c1',
+        '#e83e8c',
+        '#17a2b8'
+    ];
+
+    let meugrafico = null;
+
+    function renderizarGrafico(tipo) {
+        const ctx = document.getElementById('graficoEstudos').getContext('2d');
+
+        if (meugrafico) {
+            meugrafico.destroy();
+        }
+
+        meugrafico = new Chart(ctx, {
+            type: tipo,
+            data: {
+                labels: labelsMaterias,
+                datasets: [{
+                    label: 'Quantidade de Acessos',
+                    data: valoresMaterias,
+                    backgroundColor: cores,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: tipo === 'pie' ? 'right' : 'top'
+                    }
+                },
+                scales: tipo === 'bar' ? {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                } : {}
+            }
+        });
+    }
+
+    function alterarTipoGrafico(tipo) {
+        document.getElementById('btnPizza').classList.toggle('active', tipo === 'pie');
+        document.getElementById('btnBarra').classList.toggle('active', tipo === 'bar');
+        renderizarGrafico(tipo);
+    }
+
+    async function resetarGraficoTotal(idAluno) {
+        if (!confirm('Deseja realmente resetar TODO o gráfico e zerar os acessos de todas as matérias?')) return;
+
+        try {
+            const res = await fetch('/diagnostico/reset/' + idAluno, { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) location.reload();
+        } catch (err) {
+            alert('Erro ao resetar o gráfico do aluno.');
+        }
+    }
+
+    async function resetarMateriaEspecifica(idAluno) {
+        const select = document.getElementById('selectMateriaReset');
+        const materiaSelecionada = select ? select.value : '';
+
+        if (!materiaSelecionada) {
+            alert('Por favor, selecione uma matéria para resetar.');
+            return;
+        }
+
+        if (!confirm(`Deseja realmente resetar os acessos da matéria "${materiaSelecionada}"?`)) return;
+
+        try {
+            const res = await fetch('/diagnostico/reset_materia/' + idAluno, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ materia: materiaSelecionada })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) location.reload();
+        } catch (err) {
+            alert('Erro ao resetar os dados da matéria.');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('graficoEstudos')) {
+            renderizarGrafico('pie');
+        }
+    });
+</script>
+{% endblock %}

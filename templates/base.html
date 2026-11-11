@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pro Estudos - Educação Gratuita e Acessível{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 43, 98, 0.65);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 440px;
+            position: relative;
+            box-shadow: 0 18px 50px rgba(19, 64, 101, 0.25);
+            color: #0a2b62;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px; right: 18px;
+            font-size: 24px;
+            border: none;
+            background: none;
+            color: #7186a1;
+            cursor: pointer;
+        }
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0eaf2;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-weight: 700;
+            color: #59708e;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            color: #00a875;
+            border-bottom: 3px solid #00a875;
+        }
+        .form-step {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-step.active {
+            display: flex;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #183765;
+        }
+        .form-group input, .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #ccd9e7;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .user-menu-container {
+            position: relative;
+            display: inline-block;
+        }
+        .user-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 10px;
+            background: #ffffff;
+            min-width: 200px;
+            box-shadow: 0 12px 30px rgba(10, 43, 98, 0.18);
+            border-radius: 14px;
+            overflow: hidden;
+            z-index: 10000;
+            border: 1px solid #e0eaf2;
+        }
+        .user-dropdown-menu.show {
+            display: block;
+        }
+        .user-dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            color: #0a2b62;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR DE NAVEGAÇÃO -->
+    <header class="topbar">
+        <!-- LOGO NO CANTO SUPERIOR ESQUERDO -->
+        <a href="{{ url_for('index') }}" class="logo">
+            <img src="{{ url_for('static', filename='protech/Dowl/Logo.png') }}" alt="Pro Estudos" style="max-height: 40px; width: auto; display: block;">
+        </a>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('conteudos') }}">Conteúdos Disponíveis</a>
+            <a href="{{ url_for('ranking') }}">🏆 Ranking</a>
+            
+            {% if not usuario or usuario.perfil in ['professor', 'admin'] %}
+                <a href="{{ url_for('professores') }}">Para Professores</a>
+            {% endif %}
+
+            {% if usuario %}
+                <a href="{{ url_for('conquistas') }}">🏅 Conquistas</a>
+                <a href="{{ url_for('diagnostico') }}">📊 Diagnóstico</a>
+                <a href="{{ url_for('mensagens') }}">Central de Mensagens</a>
+                {% if usuario.perfil == 'admin' %}
+                    <a href="{{ url_for('listar_usuarios') }}" style="color: #00a875; font-weight: 800;">👥 Usuários</a>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="nav-actions">
+            {% if usuario %}
+                <div class="user-badge">
+                    {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                        <span style="padding: 3px 9px; border-radius: 12px; font-size: 12px; font-weight: 800; background: {{ usuario.aluno.moldura_ativa_info.bg or '#00a875' }}; color: {{ usuario.aluno.moldura_ativa_info.cor or '#ffffff' }};" title="Moldura Equipada">
+                            {{ usuario.aluno.moldura_ativa_info.icone or '🏅' }} {{ usuario.aluno.moldura_ativa_info.nome or 'Iniciante' }}
+                        </span>
+                        <span class="badge-streak" title="Sequência de Acessos Diários">🔥 {{ usuario.aluno.sequencia_dias or 1 }}d</span>
+                        <span class="badge-points" title="Pontuação Geral">⭐ {{ usuario.aluno.pontos or 0 }} pts</span>
+                    {% endif %}
+
+                    <!-- BOTÃO DROPDOWN DE PERFIL COM MOLDURA E ÍCONE DIVINO -->
+                    <div class="user-menu-container">
+                        <button type="button" class="user-dropdown-btn" onclick="toggleUserDropdown(event)" style="background: none; border: none; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 8px;">
+                            {% if usuario.perfil == 'aluno' and usuario.aluno %}
+                                <!-- MOLDURA PERSONALIZADA E TAMANHO AJUSTADO -->
+                                <div class="patente-avatar-frame" style="width: 38px; height: 38px; border-radius: 50%; padding: 2px; background: {{ usuario.aluno.moldura_ativa_info.bg or '#00a875' }}; box-shadow: 0 0 10px {{ usuario.aluno.moldura_ativa_info.cor or 'rgba(0,168,117,0.4)' }}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    {% if usuario.aluno.foto and usuario.aluno.foto != 'default_avatar.png' %}
+                                        <img src="{{ url_for('static', filename='uploads/' + usuario.aluno.foto) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" alt="Avatar">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 16px; border-radius: 50%; background: #ffffff;">👤</div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: #00a875; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; overflow: hidden;">
+                                    {% if usuario.professor and usuario.professor.foto and usuario.professor.foto != 'default_avatar.png' %}
+                                        <img src="{{ url_for('static', filename='uploads/' + usuario.professor.foto) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" alt="Avatar">
+                                    {% else %}
+                                        👤
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <!-- NOME COM ÍCONE DA MOLDURA/CONQUISTA DIVINA AO FINAL -->
+                            <span style="font-weight:700; color:#0a2b62; font-size: 14px; display: inline-flex; align-items: center; gap: 4px;">
+                                {% if usuario.aluno %}
+                                    {{ usuario.aluno.nome }}
+                                    {% if usuario.aluno.moldura_ativa_info and usuario.aluno.moldura_ativa_info.icone %}
+                                        <span title="{{ usuario.aluno.moldura_ativa_info.nome }}" style="font-size: 15px;">
+                                            {{ usuario.aluno.moldura_ativa_info.icone }}
+                                        </span>
+                                    {% endif %}
+                                {% elif usuario.professor %}
+                                    {{ usuario.professor.nome }}
+                                {% else %}
+                                    {{ usuario.email.split('@')[0] }}
+                                {% endif %}
+                                <small style="font-size:10px; margin-left:2px;">▼</small>
+                            </span>
+                        </button>
+
+                        <div id="userDropdownMenu" class="user-dropdown-menu">
+                            <a href="{{ url_for('perfil') }}">⚙️ Personalizar Perfil</a>
+                            <hr style="margin: 0; border: 0; border-top: 1px solid #e0eaf2;">
+                            <a href="{{ url_for('logout') }}" style="color: #dc3545;">🚪 Sair</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <button type="button" class="btn btn-primary btn-sm" onclick="openAuthModal('login')">Acessar Plataforma</button>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- MODAL DE AUTENTICAÇÃO -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <button type="button" class="modal-close" onclick="closeAuthModal()">&times;</button>
+            
+            <div class="modal-tabs">
+                <button type="button" class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Entrar</button>
+                <button type="button" class="tab-btn" id="tabCadastro" onclick="switchTab('cadastro')">Criar Conta</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <form id="loginForm" class="form-step active" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" required placeholder="Sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Entrar</button>
+            </form>
+
+            <!-- Formulário de Cadastro -->
+            <form id="cadastroForm" class="form-step" onsubmit="handleCadastroSubmit(event)">
+                <input type="hidden" id="cadPerfil" value="aluno">
+                
+                <div class="form-group">
+                    <label for="cadNome">Nome Completo</label>
+                    <input type="text" id="cadNome" required placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="cadEmail">E-mail</label>
+                    <input type="email" id="cadEmail" required placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="cadSenha">Senha</label>
+                    <input type="password" id="cadSenha" minlength="6" required placeholder="Mínimo 6 caracteres">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">Cadastrar e Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer style="text-align: center; padding: 25px 20px; color: #59708e; font-size: 13px;">
+        <p>&copy; 2026 Pro Estudos. Plataforma Educacional Aberta e Gratuita.</p>
+    </footer>
+
+    <!-- SCRIPTS GLOBAIS DE INTERAÇÃO -->
+    <script>
+        function toggleUserDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            if (menu) menu.classList.toggle('show');
+        }
+
+        function openAuthModal(aba = 'login', perfil = 'aluno') {
+            const modal = document.getElementById('authModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            
+            const cadPerfilInput = document.getElementById('cadPerfil');
+            if (cadPerfilInput && perfil) {
+                cadPerfilInput.value = perfil;
+            }
+            switchTab(aba);
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function switchTab(aba) {
+            const isLogin = aba === 'login';
+            const tabLogin = document.getElementById('tabLogin');
+            const tabCadastro = document.getElementById('tabCadastro');
+            const loginForm = document.getElementById('loginForm');
+            const cadastroForm = document.getElementById('cadastroForm');
+
+            if (tabLogin) tabLogin.classList.toggle('active', isLogin);
+            if (tabCadastro) tabCadastro.classList.toggle('active', !isLogin);
+            if (loginForm) {
+                loginForm.classList.toggle('active', isLogin);
+                loginForm.style.display = isLogin ? 'flex' : 'none';
+            }
+            if (cadastroForm) {
+                cadastroForm.classList.toggle('active', !isLogin);
+                cadastroForm.style.display = !isLogin ? 'flex' : 'none';
+            }
+        }
+
+        async function handleLoginSubmit(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar login.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
+            }
+        }
+
+        async function handleCadastroSubmit(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cadNome').value;
+            const email = document.getElementById('cadEmail').value;
+            const senha = document.getElementById('cadSenha').value;
+            const perfil = document.getElementById('cadPerfil').value;
+
+            try {
+                const res = await fetch('/cadastrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha, perfil })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Erro ao realizar cadastro.');
+                }
+            } catch (err) {
+                alert('Erro na comunicação com o servidor.');
+            }
+        }
+
+        window.onclick = function(e) {
+            const authModal = document.getElementById('authModal');
+            if (e.target === authModal) closeAuthModal();
+
+            const userMenu = document.getElementById('userDropdownMenu');
+            if (userMenu && !e.target.closest('.user-menu-container')) {
+                userMenu.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>

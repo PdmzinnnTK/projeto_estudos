@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Projeto Estudos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+
+<body>
+
+
+    <main>
+
+
+        <h2>Login</h2>
+
+
+        {% with mensagens = get_flashed_messages(with_categories=true) %}
+            {% if mensagens %}
+                {% for categoria, mensagem in mensagens %}
+                    <div class="mensagem {{ categoria }}">
+                        {{ mensagem }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+
+        <form method="POST" action="/login/autenticar">
+
+
+            <label>Login:</label>
+            <input type="text" name="email" required>
+
+
+            <label>Senha:</label>
+            <input type="password" name="senha" required>
+
+
+            <button type="submit">Entrar</button>
+
+
+        </form>
+
+
+        <p>Usuário de teste:</p>
+        <p><strong>Aluno1</strong> / senha: <strong>123</strong></p>
+
+
+    </main>
+
+
+</body>
+</html>

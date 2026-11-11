@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Missões e Conquistas - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('index') }}" class="btn-voltar">
+        ← Voltar ao Início
+    </a>
+
+    <div class="materia-header">
+        <h1>🏅 Central de <span>Missões & Medalhas</span></h1>
+        <p>Acesse matérias e lições para desbloquear medalhas com níveis de raridade cada vez mais altos!</p>
+    </div>
+
+    {% if usuario.perfil == 'aluno' and usuario.aluno %}
+        {% set info = usuario.aluno.missoes_conquistas %}
+        
+        <!-- Resumo do Progresso -->
+        <div class="card-conteudo" style="margin-bottom: 25px; background: linear-gradient(135deg, #0a2b62, #183765); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <h2 style="margin: 0; font-size: 24px; color: #ffffff;">Seu Progresso de Leitura</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9;">Total de matérias/lições acessadas: <strong>{{ info.total_acessos }}</strong></p>
+                </div>
+                <div style="background: rgba(255,255,255,0.15); padding: 12px 20px; border-radius: 12px; text-align: center;">
+                    <span style="font-size: 20px; font-weight: 800; color: #00a875;">{{ info.qtd_desbloqueadas }} / {{ info.qtd_total }}</span><br>
+                    <small>Medalhas Conquistadas</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Medalhas -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+            {% for m in info.medalhas %}
+                <div class="card-conteudo" style="position: relative; border-left: 6px solid {{ m.cor }}; {% if not m.desbloqueado %}opacity: 0.65; filter: grayscale(40%);{% endif %}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <span style="font-size: 36px;">{{ m.icone }}</span>
+                        <span style="padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; background: {{ m.bg }}; color: {{ m.cor }}; text-transform: uppercase;">
+                            {{ m.raridade }}
+                        </span>
+                    </div>
+
+                    <h3 style="margin: 12px 0 4px 0; color: #0a2b62; font-size: 17px;">{{ m.titulo }}</h3>
+                    <p style="font-size: 13px; color: #59708e; margin: 0 0 12px 0;">Requisito: <strong>{{ m.meta }} acessos</strong></p>
+
+                    <!-- Barra de Progresso da Conquista -->
+                    <div style="background: #e0eaf2; border-radius: 10px; height: 10px; overflow: hidden; width: 100%;">
+                        <div style="background: {{ m.cor }}; width: {{ m.progresso_pct }}%; height: 100%; transition: width 0.3s;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; font-weight: 700; color: #7186a1;">
+                        <span>{% if m.desbloqueado %}Desbloqueado! 🎉{% else %}Em andamento{% endif %}</span>
+                        <span>{{ m.progresso_pct }}%</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🏅</div>
+            <h3>Conquistas Exclusivas para Alunos</h3>
+            <p>Faça login com uma conta de Aluno para começar a acumular pontos e desbloquear medalhas!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

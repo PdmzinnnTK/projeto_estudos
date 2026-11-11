@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ materia_nome }} - Pro Estudos{% endblock %}
+
+{% block content %}
+<div class="materia-container">
+    <a href="{{ url_for('conteudos') }}" class="btn-voltar">
+        ← Voltar para Todos os Conteúdos
+    </a>
+
+    <div class="materia-header">
+        <h1>Conteúdos de <span>{{ materia_nome }}</span></h1>
+        <p>Confira abaixo todos os materiais didáticos disponibilizados para esta disciplina.</p>
+    </div>
+
+    <div class="conteudos-grid">
+        {% if conteudos %}
+            {% for c in conteudos %}
+                <div class="card-conteudo">
+                    <div>
+                        <div class="card-header-meta">
+                            <span class="badge-tipo {{ c.tipo_conteudo|lower }}">{{ c.tipo_conteudo }}</span>
+                            <span class="data-meta">📅 {{ c.data_publicacao.strftime('%d/%m/%Y') if c.data_publicacao else 'Recente' }}</span>
+                        </div>
+
+                        <h3 class="card-titulo">{{ c.titulo }}</h3>
+                        <p class="card-tema">📌 <strong>Tema:</strong> {{ c.tema }}</p>
+
+                        {% if c.professor %}
+                            <div class="card-autor">
+                                <span>👨‍🏫 <strong>Professor(a):</strong> {{ c.professor.nome }}</span>
+                            </div>
+                        {% endif %}
+
+                        {% if c.descricao %}
+                            <p class="card-descricao">{{ c.descricao }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer-action">
+                        {% if c.link or c.arquivo %}
+                            <a href="{{ url_for('acessar_conteudo', id_conteudo=c.id_conteudo) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-block">
+                                {% if c.link %}🔗 Acessar Conteúdo Externo{% else %}📄 Baixar Arquivo Anexo{% endif %}
+                            </a>
+                        {% else %}
+                            <span class="btn-indisponivel">Anexo indisponível</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📖</div>
+                <h3>Nenhum conteúdo para {{ materia_nome }}</h3>
+                <p>Em breve novos materiais serão adicionados pelos professores voluntários.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
