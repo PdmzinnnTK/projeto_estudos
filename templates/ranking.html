@@ -41,17 +41,19 @@
             <tbody>
                 {% if ranking %}
                     {% for aluno in ranking %}
+                        {% set moldura = aluno.moldura_ativa_info %}
                         <tr class="{% if loop.index == 1 %}top-1{% elif loop.index == 2 %}top-2{% elif loop.index == 3 %}top-3{% endif %}">
                             <td class="rank-position">
                                 {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}º{% endif %}
                             </td>
                             <td class="student-name">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div class="patente-avatar-frame" style="background: {{ aluno.patente_info.cor }}; box-shadow: 0 0 8px {{ aluno.patente_info.cor }};">
+                                    <!-- AVATAR COM A MOLDURA EQUIPADA (mesmo visual do perfil) -->
+                                    <div title="Moldura {{ moldura.nome }}" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; padding: 3px; background: {{ moldura.cor }}; box-shadow: 0 0 10px {{ moldura.cor }}; display: flex; align-items: center; justify-content: center;">
                                         {% if aluno.foto and aluno.foto != 'default_avatar.png' %}
-                                            <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" class="patente-avatar-img" style="width: 34px; height: 34px;" alt="Avatar">
+                                            <img src="{{ url_for('static', filename='uploads/' + aluno.foto) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; background: #ffffff;" alt="Avatar">
                                         {% else %}
-                                            <div class="patente-avatar-img" style="width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; font-size:15px;">👤</div>
+                                            <div style="width: 100%; height: 100%; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 18px;">👤</div>
                                         {% endif %}
                                     </div>
                                     <div>

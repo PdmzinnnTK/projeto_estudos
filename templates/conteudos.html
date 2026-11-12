@@ -1,8 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Conteúdos e Lições - Pro Estudos{% endblock %}
+{% set is_enem = (categoria == 'enem') %}
+
+{% block title %}{% if categoria == 'enem' %}Conteúdos do ENEM{% else %}Conteúdos e Lições{% endif %} - Pro Estudos{% endblock %}
 
 {% block content %}
+{% set is_enem = (categoria == 'enem') %}
 <style>
     .btn-filtro-materia {
         background: #ffffff;
@@ -50,21 +53,84 @@
         align-items: center;
         gap: 10px;
     }
+
+    /* Cartão/botão que leva à tela do ENEM */
+    .banner-enem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        background: linear-gradient(135deg, #0a2b62, #183765);
+        color: #ffffff;
+        padding: 20px 24px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 30px rgba(10, 43, 98, 0.15);
+    }
+    .banner-enem h3 {
+        margin: 0 0 4px 0;
+        font-size: 20px;
+        color: #ffffff;
+    }
+    .banner-enem p {
+        margin: 0;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+    .btn-enem {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #00a875, #008f63);
+        color: #ffffff;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 800;
+        font-size: 14px;
+        box-shadow: 0 4px 14px rgba(0, 168, 112, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-enem:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 168, 112, 0.5);
+    }
 </style>
 
 <div class="materia-container">
-    <a href="{{ url_for('index') }}" class="btn-voltar">
-        ← Voltar ao Início
-    </a>
+    {% if is_enem %}
+        <a href="{{ url_for('conteudos') }}" class="btn-voltar">
+            ← Voltar aos Conteúdos
+        </a>
 
-    <div class="materia-header">
-        <h1>📚 Conteúdos & <span>Lições Disponíveis</span></h1>
-        <p>Explore os materiais disponíveis, pesquise por termo ou filtre por matéria para testar seus conhecimentos!</p>
-    </div>
+        <div class="materia-header">
+            <h1>🎓 Conteúdos do <span>ENEM</span></h1>
+            <p>Materiais e lições focados na preparação para o ENEM. Pesquise por termo ou filtre por matéria!</p>
+        </div>
+    {% else %}
+        <a href="{{ url_for('index') }}" class="btn-voltar">
+            ← Voltar ao Início
+        </a>
+
+        <div class="materia-header">
+            <h1>📚 Conteúdos & <span>Lições Disponíveis</span></h1>
+            <p>Explore os materiais disponíveis, pesquise por termo ou filtre por matéria para testar seus conhecimentos!</p>
+        </div>
+
+        <!-- BOTÃO QUE LEVA PARA A TELA DE CONTEÚDOS DO ENEM -->
+        <div class="banner-enem">
+            <div>
+                <h3>🎓 Conteúdos do ENEM</h3>
+                <p>Materiais e lições exclusivos para quem está se preparando para o ENEM.</p>
+            </div>
+            <a href="{{ url_for('conteudos_enem') }}" class="btn-enem">Acessar Conteúdos do ENEM →</a>
+        </div>
+    {% endif %}
 
     <!-- PAINEL DE PESQUISA E FILTROS -->
     <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; background: #ffffff; padding: 20px; border-radius: 14px; border: 1px solid #e0eaf2;">
-        
+
         <!-- CAMPO DE PESQUISA TEXTUAL -->
         <div style="display: flex; gap: 10px; align-items: center;">
             <input type="text" id="inputPesquisa" class="input-busca-custom" placeholder="🔍 Digite para pesquisar por título, tema, palavra-chave ou resumo..." onkeyup="aplicarFiltros()">
@@ -84,7 +150,7 @@
     {% if usuario and usuario.perfil in ['professor', 'admin'] %}
         <div style="margin-bottom: 25px; text-align: right;">
             <button type="button" class="btn-interativo" onclick="abrirModal('modalNovoMaterial')">
-                ➕ Publicar Novo Material
+                ➕ Publicar Novo Material{% if is_enem %} do ENEM{% endif %}
             </button>
         </div>
     {% endif %}
@@ -105,7 +171,7 @@
 
                     <!-- AÇÕES E LIÇÕES DO CONTEÚDO ESPECÍFICO -->
                     <div style="border-top: 1px solid #e0eaf2; padding-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-                        
+
                         <!-- Abrir Conteúdo -->
                         <a href="{{ url_for('acessar_conteudo', id_conteudo=c.id_conteudo) }}" target="_blank" class="btn-interativo azul" style="text-align: center; text-decoration: none; padding: 10px; font-size: 13px;">
                             📖 Abrir Material
@@ -134,9 +200,15 @@
             {% endfor %}
         {% else %}
             <div class="empty-state" style="grid-column: 1 / -1;">
-                <div class="empty-icon">📚</div>
-                <h3>Nenhum conteúdo publicado</h3>
-                <p>Assim que os professores publicarem materiais, eles aparecerão aqui.</p>
+                {% if is_enem %}
+                    <div class="empty-icon">🎓</div>
+                    <h3>Nenhum conteúdo do ENEM publicado</h3>
+                    <p>Assim que os professores publicarem materiais do ENEM, eles aparecerão aqui.</p>
+                {% else %}
+                    <div class="empty-icon">📚</div>
+                    <h3>Nenhum conteúdo publicado</h3>
+                    <p>Assim que os professores publicarem materiais, eles aparecerão aqui.</p>
+                {% endif %}
             </div>
         {% endif %}
     </div>
@@ -146,6 +218,92 @@
         <div class="empty-icon">🔍</div>
         <h3>Nenhum resultado encontrado</h3>
         <p>Tente alterar o termo pesquisado ou a matéria selecionada.</p>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ÁREA EXCLUSIVA DE PROFESSOR/ADMIN: PUBLICAR E GERENCIAR LIÇÕES -->
+<!-- (alunos e visitantes não recebem este HTML nem este JS)      -->
+<!-- ============================================================ -->
+{% if usuario and usuario.perfil in ['professor', 'admin'] %}
+
+<style>
+    .modal-custom {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 43, 98, 0.65);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-conteudo {
+        background: white;
+        padding: 28px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 520px;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+        color: #0a2b62;
+        box-shadow: 0 18px 50px rgba(19, 64, 101, 0.2);
+    }
+    .fechar-modal {
+        position: absolute;
+        top: 15px; right: 15px;
+        font-size: 22px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: #7186a1;
+    }
+    .modal-conteudo input, .modal-conteudo select, .modal-conteudo textarea {
+        width: 100%;
+        padding: 10px 12px;
+        margin-top: 5px;
+        margin-bottom: 12px;
+        border: 1px solid #ccd9e7;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-family: inherit;
+    }
+</style>
+
+<!-- MODAL DE PUBLICAR NOVO MATERIAL (salva na categoria da tela atual) -->
+<div id="modalNovoMaterial" class="modal-custom">
+    <div class="modal-conteudo">
+        <button type="button" class="fechar-modal" onclick="fecharModal('modalNovoMaterial')">&times;</button>
+        <h3 style="margin-bottom:12px;">Publicar Novo Material{% if is_enem %} do ENEM{% endif %}</h3>
+        <form onsubmit="cadastrarMaterial(event)">
+            <label>Título do Conteúdo:</label>
+            <input type="text" id="mat_titulo" placeholder="Ex: Apostila de Álgebra Linear" required>
+
+            <label>Matéria:</label>
+            <select id="mat_materia">
+                {% for chave, nome in materias.items() %}
+                    <option value="{{ nome }}">{{ nome }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Tema / Tópico:</label>
+            <input type="text" id="mat_tema" placeholder="Ex: Equações de 2º Grau" required>
+
+            <label>Tipo de Material:</label>
+            <select id="mat_tipo">
+                <option value="PDF">PDF / Documento</option>
+                <option value="Video">Vídeo / Aula Online</option>
+                <option value="Texto">Texto / Artigo</option>
+            </select>
+
+            <label>Descrição Breve:</label>
+            <textarea id="mat_desc" rows="2" placeholder="Resumo sobre o material..."></textarea>
+
+            <label>Link Externo (Opcional):</label>
+            <input type="url" id="mat_link" placeholder="https://youtube.com/...">
+
+            <button type="submit" class="btn-interativo" style="width:100%; margin-top:10px;">Publicar Conteúdo</button>
+        </form>
     </div>
 </div>
 
@@ -221,39 +379,40 @@
 </div>
 
 <script>
-    let materiaSelecionada = 'todas';
     let perguntasCache = [];
+    const CATEGORIA_ATUAL = '{{ categoria }}';
 
-    function selecionarMateria(nomeMateria, botaoClicado) {
-        document.querySelectorAll('.btn-filtro-materia').forEach(btn => btn.classList.remove('active'));
-        botaoClicado.classList.add('active');
-        materiaSelecionada = nomeMateria;
-        aplicarFiltros();
+    function abrirModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'flex';
     }
 
-    function aplicarFiltros() {
-        const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-        const cards = document.querySelectorAll('.card-conteudo-item');
-        let visiveis = 0;
+    function fecharModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    }
 
-        cards.forEach(card => {
-            const materiaCard = card.getAttribute('data-materia');
-            const textoConteudo = card.innerText.toLowerCase();
-
-            const atendeMateria = (materiaSelecionada === 'todas' || materiaCard === materiaSelecionada);
-            const atendeBusca = (termo === '' || textoConteudo.includes(termo));
-
-            if (atendeMateria && atendeBusca) {
-                card.style.display = 'block';
-                visiveis++;
-            } else {
-                card.style.display = 'none';
-            }
-        });
-
-        const emptyState = document.getElementById('emptyStateFiltro');
-        if (emptyState) {
-            emptyState.style.display = visiveis === 0 ? 'block' : 'none';
+    async function cadastrarMaterial(e) {
+        e.preventDefault();
+        try {
+            const res = await fetch('/professor/conteudo/novo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: document.getElementById('mat_titulo').value,
+                    materia: document.getElementById('mat_materia').value,
+                    tema: document.getElementById('mat_tema').value,
+                    tipo_conteudo: document.getElementById('mat_tipo').value,
+                    descricao: document.getElementById('mat_desc').value,
+                    link: document.getElementById('mat_link').value,
+                    categoria: CATEGORIA_ATUAL
+                })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) location.reload();
+        } catch (err) {
+            alert('Erro ao publicar o material.');
         }
     }
 
@@ -347,8 +506,8 @@
             pontos: document.getElementById('perg_pontos').value
         };
 
-        const url = idPergunta 
-            ? `/professor/pergunta/editar/${idPergunta}` 
+        const url = idPergunta
+            ? `/professor/pergunta/editar/${idPergunta}`
             : `/professor/conteudo/${idConteudo}/pergunta/nova`;
 
         try {
@@ -382,6 +541,45 @@
             }
         } catch (err) {
             alert('Erro ao excluir a pergunta.');
+        }
+    }
+</script>
+{% endif %}
+
+<!-- FILTROS (disponíveis para todos) -->
+<script>
+    let materiaSelecionada = 'todas';
+
+    function selecionarMateria(nomeMateria, botaoClicado) {
+        document.querySelectorAll('.btn-filtro-materia').forEach(btn => btn.classList.remove('active'));
+        botaoClicado.classList.add('active');
+        materiaSelecionada = nomeMateria;
+        aplicarFiltros();
+    }
+
+    function aplicarFiltros() {
+        const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.card-conteudo-item');
+        let visiveis = 0;
+
+        cards.forEach(card => {
+            const materiaCard = card.getAttribute('data-materia');
+            const textoConteudo = card.innerText.toLowerCase();
+
+            const atendeMateria = (materiaSelecionada === 'todas' || materiaCard === materiaSelecionada);
+            const atendeBusca = (termo === '' || textoConteudo.includes(termo));
+
+            if (atendeMateria && atendeBusca) {
+                card.style.display = 'block';
+                visiveis++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        const emptyState = document.getElementById('emptyStateFiltro');
+        if (emptyState) {
+            emptyState.style.display = visiveis === 0 ? 'block' : 'none';
         }
     }
 </script>

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -25,6 +26,9 @@ MATERIAS = {
     'geografia': 'Geografia',
     'computacao': 'Ciências da Computação'
 }
+
+# Categorias de conteúdo: 'geral' (tela Conteúdos) e 'enem' (tela Conteúdos do ENEM)
+CATEGORIAS_CONTEUDO = ['geral', 'enem']
 
 PATENTES_INFO = {
     "Bronze": {"nome": "Bronze", "icone": "🥉", "cor": "#b08968", "bg": "#f5efe6", "min_pontos": 0},
@@ -167,6 +171,7 @@ class Conteudo(db.Model):
     descricao = db.Column(db.Text)
     arquivo = db.Column(db.String(255))
     link = db.Column(db.String(255))
+    categoria = db.Column(db.String(20), default='geral')
     data_publicacao = db.Column(db.DateTime, default=datetime.utcnow)
 
     professor = db.relationship('Professor', backref='conteudos')
@@ -278,6 +283,17 @@ def obter_contexto_usuario():
     return usuario_logado, professores, mensagens, ranking_alunos
 
 
+def consultar_conteudos_por_categoria(categoria):
+    """Retorna os conteúdos da categoria pedida ('geral' ou 'enem').
+    Conteúdos antigos (categoria nula) contam como 'geral'."""
+    query = Conteudo.query
+    if categoria == 'enem':
+        query = query.filter(Conteudo.categoria == 'enem')
+    else:
+        query = query.filter(or_(Conteudo.categoria == 'geral', Conteudo.categoria.is_(None)))
+    return query.order_by(Conteudo.data_publicacao.desc()).all()
+
+
 # --- ROTAS PRINCIPAIS ---
 
 @app.route('/')
@@ -289,8 +305,15 @@ def index():
 @app.route('/conteudos')
 def conteudos():
     usuario_logado, professores, mensagens_lista, ranking = obter_contexto_usuario()
-    todos_conteudos = Conteudo.query.order_by(Conteudo.data_publicacao.desc()).all()
-    return render_template('conteudos.html', materias=MATERIAS, conteudos=todos_conteudos, usuario=usuario_logado, professores=professores, mensagens_lista=mensagens_lista, ranking=ranking)
+    todos_conteudos = consultar_conteudos_por_categoria('geral')
+    return render_template('conteudos.html', materias=MATERIAS, conteudos=todos_conteudos, categoria='geral', usuario=usuario_logado, professores=professores, mensagens_lista=mensagens_lista, ranking=ranking)
+
+
+@app.route('/conteudos/enem')
+def conteudos_enem():
+    usuario_logado, professores, mensagens_lista, ranking = obter_contexto_usuario()
+    conteudos_enem_lista = consultar_conteudos_por_categoria('enem')
+    return render_template('conteudos.html', materias=MATERIAS, conteudos=conteudos_enem_lista, categoria='enem', usuario=usuario_logado, professores=professores, mensagens_lista=mensagens_lista, ranking=ranking)
 
 
 @app.route('/ranking')
@@ -672,7 +695,10 @@ def ver_materia(slug):
         return redirect(url_for('index'))
 
     usuario_logado, professores, mensagens, ranking = obter_contexto_usuario()
-    conteudos_materia = Conteudo.query.filter(Conteudo.materia.ilike(nome_materia)).order_by(Conteudo.data_publicacao.desc()).all()
+    conteudos_materia = Conteudo.query.filter(
+        Conteudo.materia.ilike(nome_materia),
+        or_(Conteudo.categoria == 'geral', Conteudo.categoria.is_(None))
+    ).order_by(Conteudo.data_publicacao.desc()).all()
 
     return render_template('materia.html', materia_nome=nome_materia, conteudos=conteudos_materia, usuario=usuario_logado, professores=professores, mensagens=mensagens, ranking=ranking)
 
@@ -837,6 +863,10 @@ def criar_conteudo():
     if not id_prof:
         return jsonify({"status": "error", "message": "Nenhum professor disponível."}), 400
 
+    categoria = data.get('categoria', 'geral')
+    if categoria not in CATEGORIAS_CONTEUDO:
+        categoria = 'geral'
+
     novo_conteudo = Conteudo(
         id_professor=id_prof,
         titulo=data.get('titulo'),
@@ -844,7 +874,8 @@ def criar_conteudo():
         tema=data.get('tema'),
         tipo_conteudo=data.get('tipo_conteudo', 'PDF'),
         descricao=data.get('descricao', ''),
-        link=data.get('link', '')
+        link=data.get('link', ''),
+        categoria=categoria
     )
     db.session.add(novo_conteudo)
     db.session.commit()
@@ -891,6 +922,14 @@ if __name__ == '__main__':
         try:
             with db.engine.connect() as conn:
                 conn.execute(db.text("ALTER TABLE professor ADD COLUMN foto VARCHAR(255) DEFAULT 'default_avatar.png'"))
+                conn.commit()
+        except Exception:
+            pass
+
+        # Nova coluna: separa conteúdos gerais dos conteúdos do ENEM
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(db.text("ALTER TABLE conteudo ADD COLUMN categoria VARCHAR(20) DEFAULT 'geral'"))
                 conn.commit()
         except Exception:
             pass
